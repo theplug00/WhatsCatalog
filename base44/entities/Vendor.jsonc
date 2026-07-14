@@ -1,0 +1,92 @@
+{
+  "name": "Vendor",
+  "type": "object",
+  "properties": {
+    "business_name": {
+      "type": "string",
+      "title": "Business Name"
+    },
+    "owner_name": {
+      "type": "string",
+      "title": "Owner Name"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "title": "Email"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone"
+    },
+    "whatsapp_number": {
+      "type": "string",
+      "title": "WhatsApp Number"
+    },
+    "logo_url": {
+      "type": "string",
+      "format": "file",
+      "title": "Business Logo"
+    },
+    "category": {
+      "type": "string",
+      "title": "Business Category",
+      "default": "General"
+    },
+    "address": {
+      "type": "string",
+      "title": "Business Address"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "suspended"
+      ],
+      "title": "Approval Status",
+      "default": "pending"
+    },
+    "plan": {
+      "type": "string",
+      "enum": [
+        "free",
+        "basic",
+        "pro",
+        "enterprise"
+      ],
+      "title": "Subscription Plan",
+      "default": "free"
+    },
+    "subscription_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "expired",
+        "cancelled",
+        "past_due"
+      ],
+      "title": "Subscription Status",
+      "default": "active"
+    },
+    "subscription_start": {
+      "type": "string",
+      "format": "date",
+      "title": "Subscription Start"
+    },
+    "subscription_end": {
+      "type": "string",
+      "format": "date",
+      "title": "Subscription End"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Admin Notes"
+    }
+  },
+  "required": [
+    "business_name",
+    "email"
+  ]
+}

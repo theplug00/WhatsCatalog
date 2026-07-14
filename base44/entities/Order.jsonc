@@ -1,0 +1,52 @@
+{
+  "name": "Order",
+  "type": "object",
+  "properties": {
+    "customer_name": {
+      "type": "string",
+      "title": "Customer Name"
+    },
+    "customer_phone": {
+      "type": "string",
+      "title": "Customer Phone"
+    },
+    "product_name": {
+      "type": "string",
+      "title": "Product Name"
+    },
+    "quantity": {
+      "type": "number",
+      "title": "Quantity",
+      "default": 1
+    },
+    "total_price": {
+      "type": "number",
+      "title": "Total Price"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "new",
+        "confirmed",
+        "preparing",
+        "ready",
+        "delivered",
+        "cancelled"
+      ],
+      "title": "Status",
+      "default": "new"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Customer Notes"
+    },
+    "delivery_address": {
+      "type": "string",
+      "title": "Delivery Address"
+    }
+  },
+  "required": [
+    "customer_name",
+    "product_name"
+  ]
+}

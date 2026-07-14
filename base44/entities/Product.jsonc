@@ -1,0 +1,58 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Product Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "price": {
+      "type": "number",
+      "title": "Price"
+    },
+    "image_url": {
+      "type": "string",
+      "format": "file",
+      "title": "Cover Image"
+    },
+    "gallery_images": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "file"
+      },
+      "title": "Gallery Images"
+    },
+    "category": {
+      "type": "string",
+      "title": "Category",
+      "default": "General"
+    },
+    "stock": {
+      "type": "number",
+      "title": "Stock Quantity",
+      "default": 0
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "inactive"
+      ],
+      "title": "Status",
+      "default": "active"
+    },
+    "vendor_id": {
+      "type": "string",
+      "title": "Vendor ID"
+    }
+  },
+  "required": [
+    "name",
+    "price"
+  ]
+}
