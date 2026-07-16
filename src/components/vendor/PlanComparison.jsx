@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Check, Sparkles, ArrowUpRight, Crown, X } from "lucide-react";
-import { VENDOR_PLANS, formatCurrency, getPlanLimits } from "@/lib/VendorPlans";
+import { VENDOR_PLANS, formatCurrency, getPlanLimits } from "@/lib/vendorPlans";
 
 export default function PlanComparison({ currentPlanId, onUpgrade, onDowngrade }) {
   // ✅ Get current plan index for comparison
@@ -136,7 +136,7 @@ export default function PlanComparison({ currentPlanId, onUpgrade, onDowngrade }
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2">
                   <div
-                    className={`w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                    className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0
                       isCurrent ? "bg-primary" : "bg-primary/10"
                     }`}
                   >

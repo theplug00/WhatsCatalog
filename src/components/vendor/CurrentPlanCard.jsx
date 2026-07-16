@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, CheckCircle2, AlertTriangle, CreditCard } from "lucide-react";
-import { formatCurrency } from "@/lib/VendorPlans";
+import { formatCurrency } from "@/lib/vendorPlans";
 
 const PLAN_GRADIENTS = {
   free: "bg-gradient-to-br from-slate-500 to-slate-700",
@@ -102,7 +102,7 @@ export default function CurrentPlanCard({ vendor, plan }) {
       <div className="glass-heavy p-5 md:p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Billing Period */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Calendar className="w-4 h-4 text-primary" />
           </div>
           <div className="min-w-0">
@@ -123,7 +123,7 @@ export default function CurrentPlanCard({ vendor, plan }) {
 
         {/* Days Remaining */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Clock className="w-4 h-4 text-primary" />
           </div>
           <div className="min-w-0">
@@ -150,7 +150,7 @@ export default function CurrentPlanCard({ vendor, plan }) {
 
         {/* Account Status */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             {isExpired ? (
               <AlertTriangle className="w-4 h-4 text-amber-500" />
             ) : isFreePlan ? (
