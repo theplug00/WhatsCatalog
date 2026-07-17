@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Check, Sparkles, ArrowUpRight, Crown, X } from "lucide-react";
+import { Check, Sparkles, ArrowUpRight, Crown, TrendingUp, TrendingDown } from "lucide-react";
 import { VENDOR_PLANS, formatCurrency, getPlanLimits } from "@/lib/vendorPlans";
 
 export default function PlanComparison({ currentPlanId, onUpgrade, onDowngrade }) {
@@ -41,29 +41,31 @@ export default function PlanComparison({ currentPlanId, onUpgrade, onDowngrade }
               isCurrent
                 ? "bg-[#0B2E2A] text-white shadow-2xl shadow-primary/20 lg:scale-[1.03] ring-2 ring-primary"
                 : plan.popular
-                ? "glass-card ring-1 ring-primary/30 hover:shadow-xl hover:shadow-primary/10"
-                : "glass-card hover:shadow-xl hover:shadow-primary/5"
+                ? "bg-white shadow-lg ring-1 ring-primary/30 hover:shadow-xl hover:shadow-primary/10"
+                : "bg-white shadow-md hover:shadow-xl hover:shadow-primary/5"
             }`}
           >
             {/* Badges */}
             {isCurrent && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap">
-                CURRENT PLAN
+                Current Plan
               </div>
             )}
             {plan.popular && !isCurrent && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-white text-xs font-bold px-4 py-1.5 rounded-full whitespace-nowrap">
-                MOST POPULAR
+                Most Popular
               </div>
             )}
             {isUpgrade && !isCurrent && (
-              <div className="absolute -top-3 right-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                ⬆ Upgrade
+              <div className="absolute -top-3 right-3 bg-emerald-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                <TrendingUp className="w-3 h-3" />
+                Upgrade
               </div>
             )}
             {isDowngrade && !isCurrent && (
-              <div className="absolute -top-3 right-3 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                ⬇ Downgrade
+              <div className="absolute -top-3 right-3 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                <TrendingDown className="w-3 h-3" />
+                Downgrade
               </div>
             )}
 
@@ -116,17 +118,17 @@ export default function PlanComparison({ currentPlanId, onUpgrade, onDowngrade }
                 <span className={`text-[10px] font-medium px-2 py-1 rounded-full ${
                   isCurrent ? "bg-white/10 text-white/60" : "bg-[#0B2E2A]/5 text-[#0B2E2A]/50"
                 }`}>
-                  {planLimits.products === -1 ? '♾️ Products' : `📦 ${planLimits.products}`}
+                  {planLimits.products === -1 ? 'Unlimited Products' : `${planLimits.products} Products`}
                 </span>
                 <span className={`text-[10px] font-medium px-2 py-1 rounded-full ${
                   isCurrent ? "bg-white/10 text-white/60" : "bg-[#0B2E2A]/5 text-[#0B2E2A]/50"
                 }`}>
-                  {planLimits.ordersPerMonth === -1 ? '♾️ Orders' : `📋 ${planLimits.ordersPerMonth}`}
+                  {planLimits.ordersPerMonth === -1 ? 'Unlimited Orders' : `${planLimits.ordersPerMonth} Orders/mo`}
                 </span>
                 <span className={`text-[10px] font-medium px-2 py-1 rounded-full ${
                   isCurrent ? "bg-white/10 text-white/60" : "bg-[#0B2E2A]/5 text-[#0B2E2A]/50"
                 }`}>
-                  🖼️ {planLimits.imagesPerProduct}
+                  {planLimits.imagesPerProduct} Images
                 </span>
               </div>
             )}
@@ -136,7 +138,7 @@ export default function PlanComparison({ currentPlanId, onUpgrade, onDowngrade }
               {plan.features.map((feature) => (
                 <li key={feature} className="flex items-start gap-2">
                   <div
-                    className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0
+                    className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                       isCurrent ? "bg-primary" : "bg-primary/10"
                     }`}
                   >
@@ -160,7 +162,7 @@ export default function PlanComparison({ currentPlanId, onUpgrade, onDowngrade }
             {/* Action Button */}
             {isCurrent ? (
               <div className="w-full h-10 rounded-full bg-white/10 text-white/60 text-sm font-semibold flex items-center justify-center cursor-default">
-                ✓ Current Plan
+                Current Plan
               </div>
             ) : isUpgrade ? (
               <button
