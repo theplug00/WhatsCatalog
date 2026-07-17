@@ -27,6 +27,7 @@ import SuperAdminSubscriptions from '@/pages/superadmin/SuperAdminSubscriptions'
 import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
