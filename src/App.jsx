@@ -25,7 +25,6 @@ import SuperAdminOrders from '@/pages/superadmin/SuperAdminOrders';
 import SuperAdminCustomers from '@/pages/superadmin/SuperAdminCustomers';
 import SuperAdminSubscriptions from '@/pages/superadmin/SuperAdminSubscriptions';
 import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
-import AdminRoute from '@/components/AdminRoute';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
 
@@ -104,4 +103,4 @@ function App() {
   );
 }
 
-export default App;s
+export default App;
