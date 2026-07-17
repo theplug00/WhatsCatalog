@@ -24,17 +24,14 @@ import SuperAdminVendors from '@/pages/superadmin/SuperAdminVendors';
 import SuperAdminOrders from '@/pages/superadmin/SuperAdminOrders';
 import SuperAdminCustomers from '@/pages/superadmin/SuperAdminCustomers';
 import SuperAdminSubscriptions from '@/pages/superadmin/SuperAdminSubscriptions';
+import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
 import AdminRoute from '@/components/AdminRoute';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
 
-// ✅ Import AdminLogin
-import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
-
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
-  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -43,18 +40,15 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
   }
 
-  // Render the main app
   return (
     <Routes>
       {/* Public routes */}
@@ -66,24 +60,16 @@ const AuthenticatedApp = () => {
       <Route path="/vendor" element={<VendorLanding />} />
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorRegister />} />
+      <Route path="/store/:slug" element={<StorePage />} />
       
       {/* ✅ Super Admin Login - Public */}
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
       
-      {/* ✅ Store Page - Uses slug instead of vendorId */}
-      <Route path="/store/:slug" element={<StorePage />} />
-      
-      {/* Vendor protected routes */}
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
-        <Route path="/vendor/admin" element={<VendorAdmin />} />
-        <Route path="/vendor/admin/orders" element={<VendorOrders />} />
-        <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
-      </Route>
-      
-      {/* Super Admin protected routes */}
+      {/* ✅ Super Admin routes - Protected */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/super-admin/login" replace />} />}>
         <Route path="/super-admin" element={<SuperAdminLayout />}>
-          <Route index element={<SuperAdminDashboard />} />
+          <Route index element={<Navigate to="/super-admin/dashboard" replace />} />
+          <Route path="dashboard" element={<SuperAdminDashboard />} />
           <Route path="vendors" element={<SuperAdminVendors />} />
           <Route path="orders" element={<SuperAdminOrders />} />
           <Route path="customers" element={<SuperAdminCustomers />} />
@@ -91,21 +77,11 @@ const AuthenticatedApp = () => {
         </Route>
       </Route>
       
-      {/* ✅ Alternative admin route with AdminRoute wrapper */}
-      <Route 
-        path="/admin" 
-        element={
-          <AdminRoute>
-            <SuperAdminLayout />
-          </AdminRoute>
-        }
-      >
-        <Route index element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="dashboard" element={<SuperAdminDashboard />} />
-        <Route path="vendors" element={<SuperAdminVendors />} />
-        <Route path="orders" element={<SuperAdminOrders />} />
-        <Route path="customers" element={<SuperAdminCustomers />} />
-        <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+      {/* ✅ Vendor routes - Protected */}
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
+        <Route path="/vendor/admin" element={<VendorAdmin />} />
+        <Route path="/vendor/admin/orders" element={<VendorOrders />} />
+        <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
       </Route>
       
       {/* 404 page */}
@@ -128,4 +104,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;s

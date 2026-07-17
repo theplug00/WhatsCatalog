@@ -225,7 +225,7 @@ export default function VendorSubscription() {
               transition={{ delay: i * 0.05 }}
               className="glass-card rounded-2xl p-4 flex items-center gap-3"
             >
-              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                 <Check className="w-4 h-4 text-primary" />
               </div>
               <span className="text-sm font-medium text-[#0B2E2A]/70">
