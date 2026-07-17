@@ -20,8 +20,8 @@ function formatTime(dateStr) {
   const now = new Date();
   const diff = (now - d) / 1000 / 60;
   if (diff < 1) return "just now";
-  if (diff < 60) return `¢{Math.floor(diff)}m ago`;
-  if (diff < 1440) return `¢{Math.floor(diff / 60)}h ago`;
+  if (diff < 60) return `${Math.floor(diff)}m ago`;
+  if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
   return d.toLocaleDateString();
 }
 
@@ -31,7 +31,7 @@ export default function OrderCard({ order, onStatusChange }) {
   const config = STATUS_CONFIG[order.status] || STATUS_CONFIG.new;
 
   const phoneClean = (order.customer_phone || "").replace(/[^0-9]/g, "");
-  const whatsappUrl = phoneClean ? `https://wa.me/¢{phoneClean}` : null;
+  const whatsappUrl = phoneClean ? `https://wa.me/${phoneClean}` : null;
 
   const handleStatusChange = async (newStatus) => {
     setOpen(false);
@@ -85,9 +85,9 @@ export default function OrderCard({ order, onStatusChange }) {
           <button
             onClick={() => setOpen(!open)}
             disabled={updating}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ¢{config.bg} ¢{config.text} hover:opacity-80 transition-opacity disabled:opacity-50`}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${config.bg} ${config.text} hover:opacity-80 transition-opacity disabled:opacity-50`}
           >
-            <span className={`w-2 h-2 rounded-full ¢{config.dot}`} />
+            <span className={`w-2 h-2 rounded-full ${config.dot}`} />
             {config.label}
             <ChevronDown className="w-3 h-3" />
           </button>
@@ -108,7 +108,7 @@ export default function OrderCard({ order, onStatusChange }) {
                       className="flex items-center justify-between w-full px-3 py-2 text-xs font-medium text-[#0B2E2A] hover:bg-primary/5 transition-colors"
                     >
                       <span className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ¢{STATUS_CONFIG[s].dot}`} />
+                        <span className={`w-2 h-2 rounded-full ${STATUS_CONFIG[s].dot}`} />
                         {STATUS_CONFIG[s].label}
                       </span>
                       {s === order.status && <Check className="w-3 h-3 text-primary" />}
@@ -134,7 +134,7 @@ export default function OrderCard({ order, onStatusChange }) {
         </div>
         {order.total_price != null && (
           <p className="font-bold text-primary text-sm whitespace-nowrap">
-            ¢{Number(order.total_price).toFixed(2)}
+            ${Number(order.total_price).toFixed(2)}
           </p>
         )}
       </div>
@@ -159,7 +159,7 @@ export default function OrderCard({ order, onStatusChange }) {
       {order.customer_phone && (
         <div className="flex gap-2 pt-3 border-t border-[#0B2E2A]/5">
           <a
-            href={`tel:¢{order.customer_phone}`}
+            href={`tel:${order.customer_phone}`}
             className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl glass-card text-xs font-medium text-[#0B2E2A]/60 hover:text-primary transition-colors"
           >
             <Phone className="w-3.5 h-3.5" />

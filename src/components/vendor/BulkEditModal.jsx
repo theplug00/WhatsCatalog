@@ -93,7 +93,7 @@ export default function BulkEditModal({ selectedCount, onApply, onClose }) {
                 <button
                   key={opt.value || "unchanged"}
                   onClick={() => setStatus(opt.value)}
-                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ¢{
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-all ${
                     status === opt.value
                       ? opt.value === "active"
                         ? "bg-primary text-white"

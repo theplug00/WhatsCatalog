@@ -202,7 +202,7 @@ export default function VendorProfile() {
       className="glass-card rounded-3xl overflow-hidden mb-8"
     >
       {/* Banner */}
-      <div className="h-20 bg-gradient-to-r from-primary/80 to-[#0B2E2A]/70" />
+      <div className="h-20 bg-linear-to-r from-primary/80 to-[#0B2E2A]/70" />
 
       {/* Error message */}
       {error && (
@@ -264,7 +264,7 @@ export default function VendorProfile() {
                 <Input
                   value={form.category || ""}
                   onChange={handleChange("category")}
-                  className="text-xs h-7 max-w-[160px]"
+                  className="text-xs h-7 max-w-40"
                   placeholder="Category"
                 />
               ) : (
@@ -405,7 +405,7 @@ function DetailRow({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl bg-white/40 border border-white/30 px-3 py-2.5">
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
         <Icon className="w-3.5 h-3.5 text-primary" />
       </div>
       <div className="flex-1 min-w-0">

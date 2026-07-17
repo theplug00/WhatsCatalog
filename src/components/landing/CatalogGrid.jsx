@@ -73,7 +73,7 @@ function ProductCard({ product, index, onOrder }) {
               {product.name}
             </h3>
             <p className="text-primary font-bold text-sm whitespace-nowrap">
-              ¢{Number(product.price).toFixed(2)}
+              ${Number(product.price).toFixed(2)}
             </p>
           </div>
           {product.description && (
@@ -234,7 +234,7 @@ export default function CatalogGrid() {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ¢{
+                className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
                   activeCategory === cat
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
                     : "glass-card hover:text-primary"
