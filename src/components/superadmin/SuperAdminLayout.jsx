@@ -1,13 +1,26 @@
 import React, { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
-import { LayoutDashboard, Store, ShoppingBag, Users, CreditCard, MessageCircle, Menu, X } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Store, 
+  ShoppingBag, 
+  Users, 
+  CreditCard, 
+  MessageCircle, 
+  Menu, 
+  X,
+  BarChart3,
+  Bell
+} from "lucide-react";
+
 const NAV = [
   { to: "/super-admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/super-admin/notifications", label: "Notifications", icon: Bell },
+  { to: "/super-admin/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/super-admin/vendors", label: "Vendors", icon: Store },
   { to: "/super-admin/orders", label: "Orders", icon: ShoppingBag },
   { to: "/super-admin/customers", label: "Customers", icon: Users },
   { to: "/super-admin/subscriptions", label: "Subscriptions", icon: CreditCard },
-  { to: "/super-admin/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 export default function SuperAdminLayout() {
@@ -21,9 +34,7 @@ export default function SuperAdminLayout() {
 
   return (
     <div className="min-h-screen bg-[#F0F4F4] flex">
-      {/* ============================================ */}
-      {/* DESKTOP SIDEBAR - hidden on mobile */}
-      {/* ============================================ */}
+      {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 bg-[#0B2E2A] text-white flex-col fixed inset-y-0 left-0 z-30">
         <div className="px-6 py-5 border-b border-white/10">
           <Link to="/super-admin" className="flex items-center gap-2.5">
@@ -71,9 +82,7 @@ export default function SuperAdminLayout() {
         </div>
       </aside>
 
-      {/* ============================================ */}
-      {/* MOBILE HEADER - only visible on mobile */}
-      {/* ============================================ */}
+      {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#0B2E2A] px-4 py-3 flex items-center justify-between">
         <Link to="/super-admin" className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
@@ -95,19 +104,14 @@ export default function SuperAdminLayout() {
         </button>
       </div>
 
-      {/* ============================================ */}
-      {/* MOBILE SIDEBAR OVERLAY - slides in from left */}
-      {/* ============================================ */}
+      {/* Mobile Sidebar */}
       {mobileOpen && (
         <>
-          {/* Backdrop overlay */}
           <div
             className="lg:hidden fixed inset-0 z-40 bg-black/50"
             onClick={() => setMobileOpen(false)}
           />
-          
-          {/* Sidebar panel - 80% width on mobile */}
-          <aside className="lg:hidden fixed top-0 left-0 z-50 w-[80%] max-w-sm h-full bg-[#0B2E2A] text-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out">
+          <aside className="lg:hidden fixed top-0 left-0 z-50 w-[80%] max-w-sm h-full bg-[#0B2E2A] text-white flex flex-col shadow-2xl">
             <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
               <Link to="/super-admin" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
                 <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
@@ -164,9 +168,7 @@ export default function SuperAdminLayout() {
         </>
       )}
 
-      {/* ============================================ */}
-      {/* MAIN CONTENT - with padding for mobile header */}
-      {/* ============================================ */}
+      {/* Main Content */}
       <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
         <div className="p-4 md:p-8">
           <Outlet />
