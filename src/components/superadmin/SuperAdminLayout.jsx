@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { LayoutDashboard, Store, ShoppingBag, Users, CreditCard, MessageCircle, Menu, X } from "lucide-react";
-
+import { LayoutDashboard, Store, ShoppingBag, Users, CreditCard, MessageCircle, BarChart3 } from "lucide-react";
 const NAV = [
   { to: "/super-admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/super-admin/vendors", label: "Vendors", icon: Store },
   { to: "/super-admin/orders", label: "Orders", icon: ShoppingBag },
   { to: "/super-admin/customers", label: "Customers", icon: Users },
   { to: "/super-admin/subscriptions", label: "Subscriptions", icon: CreditCard },
+  { to: "/super-admin/analytics", label: "Analytics", icon: BarChart3 },
 ];
 
 export default function SuperAdminLayout() {

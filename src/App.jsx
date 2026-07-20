@@ -27,7 +27,7 @@ import SuperAdminSubscriptions from '@/pages/superadmin/SuperAdminSubscriptions'
 import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
-
+import SuperAdminAnalytics from '@/pages/superadmin/SuperAdminAnalytics';
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
@@ -73,6 +73,7 @@ const AuthenticatedApp = () => {
           <Route path="orders" element={<SuperAdminOrders />} />
           <Route path="customers" element={<SuperAdminCustomers />} />
           <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+          <Route path="analytics" element={<SuperAdminAnalytics />} />
         </Route>
       </Route>
       
