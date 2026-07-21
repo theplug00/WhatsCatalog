@@ -1,3 +1,4 @@
+// /src/lib/vendorPlans.js
 export const VENDOR_PLANS = [
   {
     id: "free",
@@ -111,7 +112,7 @@ export const VENDOR_PLANS = [
 ];
 
 // ✅ Currency formatter
-export const formatCurrency = (amount, currency = "GHS") => {
+export function formatCurrency(amount, currency = "GHS") {
   const symbols = {
     GHS: "GH₵",
     USD: "$",
@@ -121,10 +122,9 @@ export const formatCurrency = (amount, currency = "GHS") => {
   };
 
   const symbol = symbols[currency] || symbols.GHS;
-  
   if (amount === 0) return "Free";
   return `${symbol}${amount.toFixed(2)}`;
-};
+}
 
 // ✅ Get plan by ID
 export function getPlanById(id) {
@@ -143,18 +143,9 @@ export function getDefaultPlan() {
   return VENDOR_PLANS.find((p) => p.id === "free") || VENDOR_PLANS[0];
 }
 
-// ✅ Get available plans (exclude hidden ones)
+// ✅ Get available plans
 export function getAvailablePlans() {
   return VENDOR_PLANS;
-}
-
-// ✅ Check if feature is available for a plan
-export function isFeatureAvailable(planId, featureKey) {
-  const plan = getPlanById(planId);
-  if (!plan || !plan.limits) return false;
-  
-  const limit = plan.limits[featureKey];
-  return limit === undefined || limit === -1 || limit > 0;
 }
 
 // ✅ Get plan limits
@@ -163,7 +154,41 @@ export function getPlanLimits(planId) {
   return plan?.limits || VENDOR_PLANS[0].limits;
 }
 
-// ✅ Check if user can upgrade from current plan
+// ✅ Get specific plan limit
+export function getPlanLimit(planId, key) {
+  const limits = getPlanLimits(planId);
+  return limits?.[key] ?? 0;
+}
+
+// ✅ Check if a limit is unlimited
+export function isUnlimited(planId, key) {
+  const limit = getPlanLimit(planId, key);
+  return limit === -1;
+}
+
+// ✅ Check if user can add more
+export function canAddMore(planId, currentCount, key) {
+  if (isUnlimited(planId, key)) return true;
+  const limit = getPlanLimit(planId, key);
+  return currentCount < limit;
+}
+
+// ✅ Get remaining count
+export function getRemaining(planId, currentCount, key) {
+  if (isUnlimited(planId, key)) return Infinity;
+  const limit = getPlanLimit(planId, key);
+  return Math.max(0, limit - currentCount);
+}
+
+// ✅ Check if feature is available
+export function isFeatureAvailable(planId, featureKey) {
+  const plan = getPlanById(planId);
+  if (!plan || !plan.limits) return false;
+  const limit = plan.limits[featureKey];
+  return limit === undefined || limit === -1 || limit > 0;
+}
+
+// ✅ Check if user can upgrade
 export function canUpgrade(currentPlanId, targetPlanId) {
   const plans = VENDOR_PLANS;
   const currentIndex = plans.findIndex((p) => p.id === currentPlanId);
@@ -171,7 +196,7 @@ export function canUpgrade(currentPlanId, targetPlanId) {
   return targetIndex > currentIndex;
 }
 
-// ✅ Check if user can downgrade from current plan
+// ✅ Check if user can downgrade
 export function canDowngrade(currentPlanId, targetPlanId) {
   const plans = VENDOR_PLANS;
   const currentIndex = plans.findIndex((p) => p.id === currentPlanId);
@@ -179,7 +204,7 @@ export function canDowngrade(currentPlanId, targetPlanId) {
   return targetIndex < currentIndex;
 }
 
-// ✅ Get next plan for upgrade
+// ✅ Get next plan
 export function getNextPlan(currentPlanId) {
   const plans = VENDOR_PLANS;
   const currentIndex = plans.findIndex((p) => p.id === currentPlanId);
@@ -187,7 +212,7 @@ export function getNextPlan(currentPlanId) {
   return plans[currentIndex + 1];
 }
 
-// ✅ Get previous plan for downgrade
+// ✅ Get previous plan
 export function getPreviousPlan(currentPlanId) {
   const plans = VENDOR_PLANS;
   const currentIndex = plans.findIndex((p) => p.id === currentPlanId);
@@ -195,7 +220,7 @@ export function getPreviousPlan(currentPlanId) {
   return plans[currentIndex - 1];
 }
 
-// ✅ Calculate price difference between plans
+// ✅ Get price difference
 export function getPriceDifference(planIdA, planIdB) {
   const planA = getPlanById(planIdA);
   const planB = getPlanById(planIdB);
@@ -207,19 +232,10 @@ export function formatPrice(planId, currency = "GHS") {
   const plan = getPlanById(planId);
   if (!plan) return "Free";
   if (plan.price === 0) return "Free";
-  
-  const symbols = {
-    GHS: "GH₵",
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    NGN: "₦",
-  };
-  const symbol = symbols[currency] || symbols.GHS;
-  return `${symbol}${plan.price}`;
+  return formatCurrency(plan.price, currency);
 }
 
-// ✅ Get plan features as array
+// ✅ Get plan features
 export function getPlanFeatures(planId) {
   const plan = getPlanById(planId);
   return plan?.features || [];
