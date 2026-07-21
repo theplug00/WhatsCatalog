@@ -282,10 +282,30 @@ export default function VendorProfile() {
                     : "bg-gray-100 text-gray-600"
                 }`}
               >
-                {vendor.status === "active" ? "✅ Approved" : vendor.status === "pending" ? "⏳ Pending" : vendor.status}
+                {vendor.status === "active" ? " Approved" : vendor.status === "pending" ? "⏳ Pending" : vendor.status}
               </span>
             </div>
           </div>
+          // Add store link section when vendor is approved
+{vendor?.is_approved && vendor?.slug && (
+  <div className="mt-4 pt-4 border-t border-[#0B2E2A]/10">
+    <p className="text-xs font-semibold text-[#0B2E2A]/60 uppercase tracking-wide">Your Store</p>
+    <div className="flex items-center gap-2 mt-1">
+      <span className="text-sm font-medium text-[#0B2E2A] truncate">
+        {window.location.origin}/store/{vendor.slug}
+      </span>
+      <button
+        onClick={() => {
+          navigator.clipboard.writeText(`${window.location.origin}/store/${vendor.slug}`);
+          toast({ title: "Copied!" });
+        }}
+        className="text-xs text-primary hover:underline"
+      >
+        Copy
+      </button>
+    </div>
+  </div>
+)}
 
           {/* Edit / Save button */}
           {!editing ? (
