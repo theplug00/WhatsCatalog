@@ -4,7 +4,7 @@ import {
   Plus, Package, Loader2, Search, AlertCircle, 
   DollarSign, TrendingUp, Boxes, AlertTriangle, 
   CheckSquare, Eye, Copy, Check, Store,
-  X, ChevronDown, ChevronUp, Upload, Image
+  X, ChevronRight, Trash2, Edit, Filter
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
@@ -17,7 +17,7 @@ import BulkEditModal from "@/components/vendor/BulkEditModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import { getPlanLimits, isUnlimited } from "@/lib/vendorPlans";
+import { getPlanLimits } from "@/lib/vendorPlans";
 
 const LOW_STOCK_THRESHOLD = 5;
 
@@ -49,7 +49,7 @@ export default function VendorAdmin() {
   const [showStoreLink, setShowStoreLink] = useState(true);
   const [copied, setCopied] = useState(false);
 
-  // ✅ Load vendor data
+  // Load vendor data
   useEffect(() => {
     const getVendorData = async () => {
       try {
@@ -78,7 +78,7 @@ export default function VendorAdmin() {
     getVendorData();
   }, []);
 
-  // ✅ Load products
+  // Load products
   const loadProducts = useCallback(async () => {
     if (!vendorId) return;
     
@@ -109,14 +109,27 @@ export default function VendorAdmin() {
     }
   }, [loadProducts, vendorId]);
 
-  // ✅ Check product limits
+  // Product limits
   const planLimits = getPlanLimits(vendorPlan);
   const maxProducts = planLimits?.products || 25;
-  const unlimited = isUnlimited(vendorPlan, 'products');
+  const unlimited = maxProducts === -1;
   const canAddMore = unlimited || productCount < maxProducts;
   const remaining = unlimited ? '∞' : Math.max(0, maxProducts - productCount);
 
-  // ✅ Save product
+  // Copy store link
+  const copyStoreLink = () => {
+    const url = `${window.location.origin}/store/${vendor?.slug}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    toast({
+      title: "Link copied",
+      description: "Store URL copied to clipboard",
+      duration: 2000,
+    });
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Save product
   const handleSave = async (data) => {
     try {
       const productData = { 
@@ -143,7 +156,7 @@ export default function VendorAdmin() {
         if (error) throw error;
         
         toast({
-          title: "✅ Product updated",
+          title: "Product updated",
           description: `${productData.name} has been updated.`,
           duration: 3000,
         });
@@ -165,7 +178,7 @@ export default function VendorAdmin() {
         if (error) throw error;
         
         toast({
-          title: "🎉 Product added",
+          title: "Product added",
           description: `${productData.name} has been added to your catalog.`,
           duration: 3000,
         });
@@ -178,7 +191,7 @@ export default function VendorAdmin() {
       console.error('Error saving product:', err);
       setError("Failed to save product. Please try again.");
       toast({
-        title: "❌ Error",
+        title: "Error",
         description: "Failed to save product. Please try again.",
         variant: "destructive",
         duration: 3000,
@@ -186,13 +199,13 @@ export default function VendorAdmin() {
     }
   };
 
-  // ✅ Edit product
+  // Edit product
   const handleEdit = (product) => {
     setEditingProduct(product);
     setShowForm(true);
   };
 
-  // ✅ Delete product
+  // Delete product
   const handleDelete = async (product) => {
     setDeletingId(product.id);
     try {
@@ -206,7 +219,7 @@ export default function VendorAdmin() {
       setProducts((prev) => prev.filter((p) => p.id !== product.id));
       setConfirmDelete(null);
       toast({
-        title: "🗑️ Product deleted",
+        title: "Product deleted",
         description: `${product.name} has been removed.`,
         duration: 3000,
       });
@@ -214,7 +227,7 @@ export default function VendorAdmin() {
       console.error('Error deleting product:', err);
       setError("Failed to delete product.");
       toast({
-        title: "❌ Error",
+        title: "Error",
         description: "Failed to delete product.",
         variant: "destructive",
         duration: 3000,
@@ -224,7 +237,7 @@ export default function VendorAdmin() {
     }
   };
 
-  // ✅ Bulk update
+  // Bulk update
   const handleBulkApply = async (updates) => {
     try {
       const ids = Array.from(selectedIds);
@@ -242,16 +255,16 @@ export default function VendorAdmin() {
       setShowBulkEdit(false);
       exitSelectMode();
       toast({
-        title: "✅ Bulk update complete",
+        title: "Bulk update complete",
         description: `${ids.length} products updated successfully.`,
         duration: 3000,
       });
     } catch (err) {
       console.error('Bulk update error:', err);
-      setError("Failed to bulk update products. Please try again.");
+      setError("Failed to bulk update products.");
       setShowBulkEdit(false);
       toast({
-        title: "❌ Error",
+        title: "Error",
         description: "Failed to bulk update products.",
         variant: "destructive",
         duration: 3000,
@@ -259,7 +272,7 @@ export default function VendorAdmin() {
     }
   };
 
-  // ✅ Selection handlers
+  // Selection handlers
   const toggleSelect = useCallback((id) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -275,20 +288,7 @@ export default function VendorAdmin() {
     setSelectedIds(new Set());
   }, []);
 
-  // ✅ Copy store link
-  const copyStoreLink = () => {
-    const url = `${window.location.origin}/store/${vendor?.slug}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    toast({
-      title: "📋 Copied!",
-      description: "Store URL copied to clipboard",
-      duration: 2000,
-    });
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  // ✅ Filter products
+  // Filter products
   const lowStockProducts = products.filter((p) => (Number(p.stock) || 0) <= LOW_STOCK_THRESHOLD);
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.name?.toLowerCase().includes(search.toLowerCase());
@@ -296,7 +296,7 @@ export default function VendorAdmin() {
     return matchesSearch && matchesLowStock;
   });
 
-  // ✅ Stats
+  // Stats
   const totalProducts = products.length;
   const activeProducts = products.filter((p) => p.status === "active").length;
   const totalValue = products.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.stock) || 0), 0);
@@ -331,7 +331,7 @@ export default function VendorAdmin() {
             onClick={() => {
               if (!canAddMore) {
                 toast({
-                  title: "⚠️ Product Limit Reached",
+                  title: "Product Limit Reached",
                   description: `You've reached your limit of ${maxProducts} products. Upgrade to add more.`,
                   variant: "destructive",
                   duration: 4000,
@@ -342,6 +342,7 @@ export default function VendorAdmin() {
               setShowForm(true);
             }}
             className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-5 font-semibold glow-pulse transition-all"
+            disabled={!canAddMore}
           >
             <Plus className="w-4 h-4 mr-1.5" />
             {canAddMore ? "Add Product" : "Limit Reached"}
@@ -349,24 +350,24 @@ export default function VendorAdmin() {
         </motion.div>
       </div>
 
-      {/* Store Link Banner */}
+      {/* Store Link Section */}
       {vendor?.is_approved && vendor?.slug && showStoreLink && (
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 bg-linear-to-r from-primary/10 to-[#0B2E2A]/5 rounded-xl border border-primary/20"
+          className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-[#0B2E2A]/5 rounded-xl border border-primary/20"
         >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <Store className="w-5 h-5 text-primary" />
               <div>
-                <p className="text-sm font-semibold text-[#0B2E2A]">Your Store is Live! 🎉</p>
+                <p className="text-sm font-semibold text-[#0B2E2A]">Your Store is Live</p>
                 <p className="text-xs text-[#0B2E2A]/50">Share this link with your customers</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center bg-white/50 rounded-lg px-3 py-1.5 border border-[#0B2E2A]/10">
-                <span className="text-xs text-[#0B2E2A]/60 truncate max-w-37.5 sm:max-w-62.5">
+                <span className="text-xs text-[#0B2E2A]/60 truncate max-w-[150px] sm:max-w-[250px]">
                   {window.location.origin}/store/{vendor.slug}
                 </span>
               </div>
@@ -439,10 +440,10 @@ export default function VendorAdmin() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Products", value: totalProducts, icon: Package, color: "primary" },
-          { label: "Active", value: activeProducts, icon: TrendingUp, color: "primary" },
-          { label: "In Stock", value: totalStock, icon: Boxes, color: "primary" },
-          { label: "Inventory Value", value: `GH₵${totalValue.toFixed(0)}`, icon: DollarSign, color: "primary" },
+          { label: "Total Products", value: totalProducts, icon: Package },
+          { label: "Active", value: activeProducts, icon: TrendingUp },
+          { label: "In Stock", value: totalStock, icon: Boxes },
+          { label: "Inventory Value", value: `GH₵${totalValue.toFixed(0)}`, icon: DollarSign },
         ].map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -498,7 +499,7 @@ export default function VendorAdmin() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-6 flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3"
         >
-          <AlertCircle className="w-4 h-4 shrink-0" />
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {error}
         </motion.div>
       )}
