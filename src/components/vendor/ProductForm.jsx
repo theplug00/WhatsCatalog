@@ -18,6 +18,10 @@ export default function ProductForm({ initialData, onSave, onCancel }) {
     stock: initialData?.stock ?? 0,
     status: initialData?.status || "active",
   });
+  
+  // ✅ FIXED: Added imagePreview state
+  const [imagePreview, setImagePreview] = useState(initialData?.image_url || "");
+  
   const [images, setImages] = useState(() => {
     const all = [];
     if (initialData?.image_url) all.push(initialData.image_url);
@@ -44,6 +48,7 @@ export default function ProductForm({ initialData, onSave, onCancel }) {
     setUploading(true);
     setError("");
     try {
+      // Show preview
       const preview = URL.createObjectURL(file);
       setImagePreview(preview);
 
@@ -51,17 +56,26 @@ export default function ProductForm({ initialData, onSave, onCancel }) {
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `products/${fileName}`;
 
+      console.log('Uploading to:', filePath);
+
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('product-images')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('product-images')
         .getPublicUrl(filePath);
 
       setImagePreview(publicUrl);
+      
+      // Also add to images array
+      setImages(prev => [...prev, publicUrl]);
+
     } catch (err) {
       console.error('Upload error:', err);
       setError("Failed to upload image. Please try again.");
@@ -73,12 +87,19 @@ export default function ProductForm({ initialData, onSave, onCancel }) {
 
   const removeImage = (idx) => {
     setImages((prev) => prev.filter((_, i) => i !== idx));
+    if (idx === 0 && images.length > 1) {
+      // If removing the cover image, set the next as cover
+      setImagePreview(images[1] || "");
+    } else if (images.length === 1) {
+      setImagePreview("");
+    }
   };
 
   const moveImageToFront = (idx) => {
     setImages((prev) => {
       const next = [...prev];
       const [img] = next.splice(idx, 1);
+      setImagePreview(img);
       return [img, ...next];
     });
   };
@@ -105,7 +126,7 @@ export default function ProductForm({ initialData, onSave, onCancel }) {
         category: form.category,
         stock: parseInt(form.stock) || 0,
         status: form.status,
-        image_url: images[0] || "",
+        image_url: images[0] || imagePreview || "",
         gallery_images: images.slice(1),
       });
     } catch (err) {
@@ -138,7 +159,7 @@ export default function ProductForm({ initialData, onSave, onCancel }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Image gallery upload */}
+          {/* Image upload */}
           <div>
             <Label htmlFor="image-upload" className="text-sm font-medium text-[#0B2E2A] mb-2 block">
               Product Images
@@ -284,7 +305,7 @@ export default function ProductForm({ initialData, onSave, onCancel }) {
               value={form.description}
               onChange={(e) => handleChange("description", e.target.value)}
               placeholder="Describe your product..."
-              className="rounded-xl min-h-[80px]"
+              className="rounded-xl min-h-20"
             />
           </div>
 
