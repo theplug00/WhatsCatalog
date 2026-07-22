@@ -1,7 +1,18 @@
-import React, { useState, useEffect } from "react";
+ import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Store, LayoutDashboard, Package, LogOut, Menu, X, ClipboardList, CreditCard } from "lucide-react";
+import { 
+  Store, 
+  LayoutDashboard, 
+  Package, 
+  LogOut, 
+  Menu, 
+  X, 
+  ClipboardList, 
+  CreditCard,
+  User,
+  HelpCircle
+} from "lucide-react";
 import { supabase } from "@/api/supabase";
 import SupportContact from "@/components/vendor/SupportContact";
 
@@ -43,7 +54,6 @@ export default function VendorAdminLayout({ children }) {
 
         if (vendorError) {
           console.error('Vendor not found:', vendorError);
-          // If vendor doesn't exist, redirect to registration
           navigate('/vendor/register');
           return;
         }
@@ -102,8 +112,11 @@ export default function VendorAdminLayout({ children }) {
 
   return (
     <div className="min-h-screen bg-[#F0F4F4] flex">
-      {/* Sidebar (desktop) */}
+      {/* ============================================ */}
+      {/* DESKTOP SIDEBAR - hidden on mobile */}
+      {/* ============================================ */}
       <aside className="hidden lg:flex w-64 flex-col glass-nav border-r border-white/30 fixed h-full z-40">
+        {/* Logo */}
         <div className="p-6">
           <Link to="/vendor" className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
@@ -115,7 +128,8 @@ export default function VendorAdminLayout({ children }) {
           </Link>
         </div>
 
-        <nav className="flex-1 px-3">
+        {/* Navigation */}
+        <nav className="flex-1 px-3 overflow-y-auto">
           <p className="text-xs font-semibold text-[#0B2E2A]/40 uppercase tracking-wider px-3 mb-2">
             Vendor Panel
           </p>
@@ -135,6 +149,7 @@ export default function VendorAdminLayout({ children }) {
           <SupportContact />
         </nav>
 
+        {/* User Profile & Logout */}
         <div className="p-4 border-t border-white/30">
           <div className="flex items-center gap-3 px-2 mb-3">
             <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
@@ -157,7 +172,9 @@ export default function VendorAdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Mobile top bar */}
+      {/* ============================================ */}
+      {/* MOBILE TOP BAR - only visible on mobile */}
+      {/* ============================================ */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 glass-nav border-b border-white/30">
         <div className="flex items-center justify-between px-5 h-16">
           <Link to="/vendor" className="flex items-center gap-2.5">
@@ -177,20 +194,26 @@ export default function VendorAdminLayout({ children }) {
         </div>
       </div>
 
-      {/* Mobile sidebar overlay */}
+      {/* ============================================ */}
+      {/* MOBILE SIDEBAR OVERLAY - slides in from left */}
+      {/* ============================================ */}
       {mobileOpen && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="lg:hidden fixed inset-0 z-50 bg-black/20"
+          exit={{ opacity: 0 }}
+          className="lg:hidden fixed inset-0 z-50 bg-black/20 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         >
           <motion.div
             initial={{ x: -300 }}
             animate={{ x: 0 }}
+            exit={{ x: -300 }}
+            transition={{ type: "spring", damping: 25 }}
             className="w-64 h-full glass-heavy p-4 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Mobile Logo */}
             <Link to="/vendor" className="flex items-center gap-2.5 mb-6" onClick={() => setMobileOpen(false)}>
               <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
                 <Store className="w-5 h-5 text-primary-foreground" />
@@ -199,6 +222,8 @@ export default function VendorAdminLayout({ children }) {
                 Whats<span className="text-primary">Catalog</span>
               </span>
             </Link>
+
+            {/* Mobile Navigation */}
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.label}
@@ -210,9 +235,12 @@ export default function VendorAdminLayout({ children }) {
                 {item.label}
               </Link>
             ))}
+            
             <div className="mt-4">
               <SupportContact />
             </div>
+
+            {/* Mobile Logout */}
             <button
               onClick={handleLogout}
               className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors mt-auto"
@@ -224,7 +252,9 @@ export default function VendorAdminLayout({ children }) {
         </motion.div>
       )}
 
-      {/* Main content */}
+      {/* ============================================ */}
+      {/* MAIN CONTENT */}
+      {/* ============================================ */}
       <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
         <div className="p-5 md:p-8">{children}</div>
       </main>
