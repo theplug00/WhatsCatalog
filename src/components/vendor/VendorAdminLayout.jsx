@@ -152,7 +152,7 @@ export default function VendorAdminLayout({ children }) {
         {/* User Profile & Logout */}
         <div className="p-4 border-t border-white/30">
           <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
               {initial}
             </div>
             <div className="flex-1 min-w-0">
@@ -206,10 +206,10 @@ export default function VendorAdminLayout({ children }) {
           onClick={() => setMobileOpen(false)}
         >
           <motion.div
-            initial={{ x: -300 }}
+            initial={{ x: -100 }}
             animate={{ x: 0 }}
-            exit={{ x: -300 }}
-            transition={{ type: "spring", damping: 25 }}
+            exit={{ x: -100 }}
+            transition={{ type: "spring", damping: 15 }}
             className="w-64 h-full glass-heavy p-4 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
