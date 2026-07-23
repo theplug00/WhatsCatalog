@@ -126,7 +126,7 @@ export default function VendorPricing() {
 
   return (
     <section id="pricing" className="relative py-24 overflow-hidden">
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full bg-primary/5 blur-[120px]" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-150 h-100 rounded-full bg-primary/5 blur-[120px]" />
 
       <div className="relative max-w-7xl mx-auto px-5 md:px-8">
         {/* Header */}
@@ -217,7 +217,7 @@ export default function VendorPricing() {
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2.5">
                       <div
-                        className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                           plan.highlighted ? "bg-primary" : "bg-primary/10"
                         }`}
                       >
