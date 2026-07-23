@@ -16,7 +16,7 @@ import VendorRegister from '@/pages/VendorRegister';
 import VendorLanding from '@/pages/VendorLanding';
 import VendorAdmin from '@/pages/VendorAdmin';
 import VendorOrders from '@/pages/VendorOrders';
-import StorePage from '@/pages/StorePage';
+import VendorStore from '@/pages/VendorStore';
 import VendorSubscription from '@/pages/VendorSubscription';
 import SuperAdminLayout from '@/components/superadmin/SuperAdminLayout';
 import SuperAdminDashboard from '@/pages/superadmin/SuperAdminDashboard';
@@ -61,7 +61,7 @@ const AuthenticatedApp = () => {
       <Route path="/vendor" element={<VendorLanding />} />
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorRegister />} />
-      <Route path="/store/:slug" element={<StorePage />} />
+      <Route path="/store/:slug" element={<VendorStore />} />
       
       {/* ✅ Super Admin Login - Public */}
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
