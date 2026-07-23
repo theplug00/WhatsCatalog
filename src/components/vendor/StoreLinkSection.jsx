@@ -63,7 +63,7 @@ export default function StoreLinkSection({ vendorId, slug }) {
             onClick={handleCopy}
             variant="outline"
             size="sm"
-            className="rounded-xl flex-shrink-0"
+            className="rounded-xl shrink-0"
           >
             {copied ? (
               <Check className="w-3.5 h-3.5 mr-1 text-primary" />
@@ -76,7 +76,7 @@ export default function StoreLinkSection({ vendorId, slug }) {
           <a href={storeUrl} target="_blank" rel="noopener noreferrer">
             <Button
               size="sm"
-              className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground flex-shrink-0"
+              className="rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
             >
               <ExternalLink className="w-3.5 h-3.5 mr-1" />
               Visit
@@ -84,21 +84,6 @@ export default function StoreLinkSection({ vendorId, slug }) {
           </a>
         </div>
       </div>
-
-      {/* Share button (mobile friendly) */}
-      {navigator.share && (
-        <div className="mt-3">
-          <Button
-            onClick={handleShare}
-            variant="outline"
-            size="sm"
-            className="w-full rounded-xl text-sm"
-          >
-            <Store className="w-3.5 h-3.5 mr-1.5" />
-            Share Store
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

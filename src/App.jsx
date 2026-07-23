@@ -29,6 +29,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
 import SuperAdminAnalytics from '@/pages/superadmin/SuperAdminAnalytics';
 import SuperAdminNotifications from '@/pages/superadmin/SuperAdminNotifications';
+import VendorAnalytics from '@/pages/VendorAnalytics';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -85,6 +86,7 @@ const AuthenticatedApp = () => {
         <Route path="/vendor/admin" element={<VendorAdmin />} />
         <Route path="/vendor/admin/orders" element={<VendorOrders />} />
         <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
+        <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />
       </Route>
       
       {/* 404 page */}

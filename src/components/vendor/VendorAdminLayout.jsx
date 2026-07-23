@@ -15,11 +15,13 @@ import {
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import SupportContact from "@/components/vendor/SupportContact";
+import { LayoutDashboard, Package, LogOut, Menu, X, ClipboardList, CreditCard, BarChart3 } from "lucide-react";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/vendor/admin", icon: LayoutDashboard },
   { label: "Products", href: "/vendor/admin#products", icon: Package },
   { label: "Orders", href: "/vendor/admin/orders", icon: ClipboardList },
+   { label: "Analytics", href: "/vendor/admin/analytics", icon: BarChart3 },
   { label: "Subscription", href: "/vendor/admin/subscription", icon: CreditCard },
 ];
 
