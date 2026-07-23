@@ -6,7 +6,8 @@ import {
   MapPin, Star, Loader2, Copy, Check,
   ShoppingBag, ChevronRight, Heart, Share2,
   Clock, Award, Shield, Truck, CreditCard, ArrowUp,
-  Search, Filter, X, TrendingUp, Users
+  Search, Filter, X, TrendingUp, Users,
+  Mail
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import { Button } from "@/components/ui/button";
