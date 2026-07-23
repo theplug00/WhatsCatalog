@@ -14,13 +14,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/api/supabase";
 import { toast } from "@/components/ui/use-toast";
 import { PAYMENT_METHODS, MOMO_NETWORKS, detectMomoNetwork } from "@/lib/paymentTypes";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/api/supabase";
-import { toast } from "@/components/ui/use-toast";
-import { PAYMENT_METHODS, MOMO_NETWORKS, detectMomoNetwork } from "@/lib/paymentTypes";
 
 // ============================================
 // ANIMATION VARIANTS
@@ -386,7 +379,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                     value={form.address}
                     onChange={(e) => handleChange("address", e.target.value)}
                     placeholder="Street, city, landmark..."
-                    className="pl-10 rounded-xl min-h-15"
+                    className="pl-10 rounded-xl min-h-[60px]"
                   />
                 </div>
                 {errors.address && (
@@ -426,7 +419,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                   value={form.notes}
                   onChange={(e) => handleChange("notes", e.target.value)}
                   placeholder="Special instructions..."
-                  className="rounded-xl min-h-12.5"
+                  className="rounded-xl min-h-[50px]"
                 />
               </div>
 
