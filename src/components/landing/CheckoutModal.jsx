@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/api/supabase";
 import { toast } from "@/components/ui/use-toast";
-import { PAYMENT_METHODS, MOMO_NETWORKS, detectMomoNetwork } from "@/lib/paymentTypes";
+import { MOMO_NETWORKS, detectMomoNetwork } from "@/lib/paymentTypes";
 
 // ============================================
 // ANIMATION VARIANTS
@@ -41,7 +41,6 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState(null);
-  const [paymentStep, setPaymentStep] = useState(1);
   const [paymentDetails, setPaymentDetails] = useState({
     network: "",
     momoNumber: "",
@@ -61,7 +60,6 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
   useEffect(() => {
     setStep(1);
     setPaymentMethod(null);
-    setPaymentStep(1);
     setOrderComplete(false);
     setForm({
       name: "",
@@ -127,7 +125,6 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
     
     setLoading(true);
     try {
-      // Save order to Supabase
       const orderData = {
         customer_name: form.name,
         customer_phone: form.phone,
@@ -139,7 +136,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
         total_price: totalPrice,
         delivery_address: form.address,
         notes: form.notes || "",
-        status: paymentMethod === 'cod' ? 'pending' : 'payment_pending',
+        status: 'new',
         payment_method: paymentMethod,
         payment_status: paymentMethod === 'cod' ? 'pending' : 'pending',
         created_date: new Date().toISOString(),
@@ -169,7 +166,6 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
         onSuccess(data);
       }
 
-      // Close after delay
       setTimeout(() => {
         onClose();
       }, 3000);
@@ -198,7 +194,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
       `*Total:* GH₵${order.total_price.toFixed(2)}%0A` +
       `*Delivery:* ${order.delivery_address || 'Not specified'}%0A` +
       `*Payment Method:* ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Mobile Money'}%0A` +
-      `*Status:* ${paymentMethod === 'cod' ? 'Pending Delivery' : 'Payment Pending'}%0A%0A` +
+      `*Order ID:* ${order.id.substring(0, 8)}%0A%0A` +
       `_Please confirm and process this order._`;
 
     const whatsappUrl = `https://wa.me/${vendorWhatsApp}?text=${message}`;
@@ -232,13 +228,13 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
           <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-10 h-10 text-green-500" />
           </div>
-          <h2 className="text-2xl font-bold text-[#0B2E2A]">Order Placed!</h2>
+          <h2 className="text-2xl font-bold text-[#0B2E2A]">Order Placed! 🎉</h2>
           <p className="text-[#0B2E2A]/60 mt-2">
             Your order has been confirmed. Check your WhatsApp for confirmation.
           </p>
           <div className="mt-4 p-4 bg-primary/5 rounded-xl">
             <p className="text-sm font-semibold text-[#0B2E2A]">Order ID</p>
-            <p className="text-xs text-[#0B2E2A]/40 font-mono">{orderId}</p>
+            <p className="text-xs text-[#0B2E2A]/40 font-mono">{orderId?.substring(0, 8) || 'N/A'}</p>
           </div>
           <Button
             onClick={onClose}
@@ -312,6 +308,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
           {/* ============================================ */}
           {step === 1 && (
             <motion.div {...fadeInUp} className="space-y-4">
+              {/* Name */}
               <div>
                 <Label htmlFor="name" className="text-sm font-medium text-[#0B2E2A]">
                   Full Name <span className="text-red-500">*</span>
@@ -326,11 +323,10 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                     className="pl-10 rounded-xl"
                   />
                 </div>
-                {errors.name && (
-                  <p className="text-xs text-red-500 mt-1">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
               </div>
 
+              {/* Phone */}
               <div>
                 <Label htmlFor="phone" className="text-sm font-medium text-[#0B2E2A]">
                   Phone Number <span className="text-red-500">*</span>
@@ -346,11 +342,10 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                     className="pl-10 rounded-xl"
                   />
                 </div>
-                {errors.phone && (
-                  <p className="text-xs text-red-500 mt-1">{errors.phone}</p>
-                )}
+                {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
               </div>
 
+              {/* Email */}
               <div>
                 <Label htmlFor="email" className="text-sm font-medium text-[#0B2E2A]">
                   Email (optional)
@@ -368,6 +363,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                 </div>
               </div>
 
+              {/* Address */}
               <div>
                 <Label htmlFor="address" className="text-sm font-medium text-[#0B2E2A]">
                   Delivery Address <span className="text-red-500">*</span>
@@ -379,14 +375,13 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                     value={form.address}
                     onChange={(e) => handleChange("address", e.target.value)}
                     placeholder="Street, city, landmark..."
-                    className="pl-10 rounded-xl min-h-[60px]"
+                    className="pl-10 rounded-xl min-h-15"
                   />
                 </div>
-                {errors.address && (
-                  <p className="text-xs text-red-500 mt-1">{errors.address}</p>
-                )}
+                {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
               </div>
 
+              {/* Quantity & Total */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label htmlFor="quantity" className="text-sm font-medium text-[#0B2E2A]">
@@ -410,6 +405,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                 </div>
               </div>
 
+              {/* Notes */}
               <div>
                 <Label htmlFor="notes" className="text-sm font-medium text-[#0B2E2A]">
                   Order Notes (optional)
@@ -419,7 +415,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                   value={form.notes}
                   onChange={(e) => handleChange("notes", e.target.value)}
                   placeholder="Special instructions..."
-                  className="rounded-xl min-h-[50px]"
+                  className="rounded-xl min-h-12.5"
                 />
               </div>
 
@@ -460,10 +456,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                   ].map((method) => (
                     <button
                       key={method.id}
-                      onClick={() => {
-                        setPaymentMethod(method.id);
-                        setPaymentStep(1);
-                      }}
+                      onClick={() => setPaymentMethod(method.id)}
                       className={`p-3 rounded-xl border-2 transition-all text-center ${
                         paymentMethod === method.id
                           ? 'border-primary bg-primary/5'
@@ -479,7 +472,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                 </div>
               </div>
 
-              {/* Payment Details */}
+              {/* COD Details */}
               {paymentMethod === 'cod' && (
                 <motion.div {...fadeInUp} className="space-y-3">
                   <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
@@ -494,6 +487,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                 </motion.div>
               )}
 
+              {/* MoMo Details */}
               {paymentMethod === 'momo' && (
                 <motion.div {...fadeInUp} className="space-y-3">
                   <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
@@ -507,18 +501,13 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-[#0B2E2A]">
-                      Select Network
-                    </Label>
+                    <Label className="text-sm font-medium text-[#0B2E2A]">Select Network</Label>
                     <div className="grid grid-cols-3 gap-2 mt-1">
                       {MOMO_NETWORKS.map((network) => (
                         <button
                           key={network.id}
                           type="button"
-                          onClick={() => setPaymentDetails(prev => ({ 
-                            ...prev, 
-                            network: network.id 
-                          }))}
+                          onClick={() => setPaymentDetails(prev => ({ ...prev, network: network.id }))}
                           className={`p-2 rounded-xl text-xs font-medium transition-all ${
                             paymentDetails.network === network.id
                               ? 'bg-primary text-white shadow-lg shadow-primary/20'
@@ -529,38 +518,27 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                         </button>
                       ))}
                     </div>
-                    {errors.network && (
-                      <p className="text-xs text-red-500 mt-1">{errors.network}</p>
-                    )}
+                    {errors.network && <p className="text-xs text-red-500 mt-1">{errors.network}</p>}
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-[#0B2E2A]">
-                      Mobile Money Number
-                    </Label>
+                    <Label className="text-sm font-medium text-[#0B2E2A]">Mobile Money Number</Label>
                     <Input
                       type="tel"
                       value={paymentDetails.momoNumber}
                       onChange={(e) => {
                         const val = e.target.value.replace(/[^0-9]/g, '');
-                        setPaymentDetails(prev => ({ 
-                          ...prev, 
-                          momoNumber: val 
-                        }));
+                        setPaymentDetails(prev => ({ ...prev, momoNumber: val }));
                         detectNetwork(val);
                       }}
                       placeholder="024XXXXXXX"
                       className="rounded-xl mt-1"
                     />
-                    {errors.momoNumber && (
-                      <p className="text-xs text-red-500 mt-1">{errors.momoNumber}</p>
-                    )}
+                    {errors.momoNumber && <p className="text-xs text-red-500 mt-1">{errors.momoNumber}</p>}
                   </div>
 
                   <div>
-                    <Label className="text-sm font-medium text-[#0B2E2A]">
-                      Confirm Number
-                    </Label>
+                    <Label className="text-sm font-medium text-[#0B2E2A]">Confirm Number</Label>
                     <Input
                       type="tel"
                       value={paymentDetails.confirmNumber}
@@ -571,15 +549,13 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                       placeholder="Confirm number"
                       className="rounded-xl mt-1"
                     />
-                    {errors.confirmNumber && (
-                      <p className="text-xs text-red-500 mt-1">{errors.confirmNumber}</p>
-                    )}
+                    {errors.confirmNumber && <p className="text-xs text-red-500 mt-1">{errors.confirmNumber}</p>}
                   </div>
 
                   {paymentDetails.network && (
                     <div className="p-2 rounded-xl bg-green-50 text-green-700 text-xs flex items-center gap-2">
                       <CheckCircle className="w-4 h-4" />
-                      Network detected: {MOMO_NETWORKS.find(n => n.id === paymentDetails.network)?.name}
+                      Network: {MOMO_NETWORKS.find(n => n.id === paymentDetails.network)?.name}
                     </div>
                   )}
                 </motion.div>
