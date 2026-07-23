@@ -6,12 +6,13 @@ import {
   ArrowUp, ArrowDown, Download, Filter, RefreshCw,
   BarChart3, PieChart, LineChart, Activity,
   Award, Star, MessageCircle, Share2,
-  Loader2, ChevronRight, ChevronDown, X
+  Loader2, ChevronRight, ChevronDown, X,
+  Store  // ✅ Added Store
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast"
 
 // ============================================
 // ANIMATION VARIANTS
