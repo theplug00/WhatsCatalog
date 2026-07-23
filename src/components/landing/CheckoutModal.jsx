@@ -125,22 +125,22 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
     
     setLoading(true);
     try {
-      const orderData = {
-        customer_name: form.name,
-        customer_phone: form.phone,
-        customer_email: form.email || "",
-        product_name: product.name,
-        product_id: product.id,
-        vendor_id: product.vendor_id,
-        quantity: form.quantity,
-        total_price: totalPrice,
-        delivery_address: form.address,
-        notes: form.notes || "",
-        status: 'new',
-        payment_method: paymentMethod,
-        payment_status: paymentMethod === 'cod' ? 'pending' : 'pending',
-        created_date: new Date().toISOString(),
-      };
+    const orderData = {
+  customer_name: form.name,
+  customer_phone: form.phone,
+  customer_email: form.email || "",
+  product_name: product.name,
+  product_id: product.id,
+  vendor_id: product.vendor_id,
+  quantity: form.quantity,
+  total_price: totalPrice,
+  delivery_address: form.address,
+  notes: form.notes || "",
+  status: 'new',  // ✅ Use 'new' for all orders
+  payment_method: paymentMethod,
+  payment_status: 'pending',
+  created_date: new Date().toISOString(),
+};
 
       const { data, error } = await supabase
         .from('orders')
