@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 // ✅ Import the image
 import heroBg from "@/assets/9b46e2b8-167c-4635-b55f-7f06170a7c99.png";
 
-const PHONE_IMG = "https://media.base44.com/images/public/6a383a8b348b95defff04d98/6edd9ca0b_generated_10249565.png";
+const PHONE_IMG = "@assets/ChatGPT Image Jul 24, 2026, 03_39_57 PM.png";
 
 export default function HeroSection() {
   return (
