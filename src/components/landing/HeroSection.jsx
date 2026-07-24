@@ -3,9 +3,8 @@ import { motion } from "framer-motion";
 import { MessageCircle, ArrowRight, ShieldCheck, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// ✅ Import the image
+// ✅ Import the images
 import heroBg from "@/assets/9b46e2b8-167c-4635-b55f-7f06170a7c99.png";
-
 import phoneBg from "@/assets/phone.png"; 
 
 export default function HeroSection() {
@@ -21,12 +20,11 @@ export default function HeroSection() {
           alt="Abstract emerald glass spheres"
           className="w-full h-full object-cover"
           style={{
-            filter: 'blur(2px)', // ✅ Added blur
-            opacity: 0.8,        // ✅ Decreased opacity
+            filter: 'blur(2px)',
+            opacity: 0.8,
           }}
         />
-        {/* Overlay with stronger gradient */}
-        <div className="absolute inset-0 bg-linear-to-br from-[#F0F4F4]/95 via-[#F0F4F4]/80 to-[#c8ebd7]/60" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#F0F4F4]/95 via-[#F0F4F4]/80 to-[#c8ebd7]/60" />
       </div>
 
       {/* Floating decorative orbs */}
@@ -123,8 +121,9 @@ export default function HeroSection() {
 
               {/* Glass frame */}
               <div className="relative glass-card rounded-[2.5rem] p-3 md:p-4 max-w-85 md:max-w-95">
+                {/* ✅ NOW USING phoneBg */}
                 <img
-                  src={PHONE_IMG}
+                  src={phoneBg}
                   alt="WhatsApp catalog shopping experience"
                   className="w-full rounded-4xl object-cover aspect-3/4"
                 />
