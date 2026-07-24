@@ -21,12 +21,12 @@ export default function HeroSection() {
           alt="Abstract emerald glass spheres"
           className="w-full h-full object-cover"
           style={{
-            filter: 'blur(8px)', // ✅ Added blur
-            opacity: 0.4,        // ✅ Decreased opacity
+            filter: 'blur(2px)', // ✅ Added blur
+            opacity: 0.8,        // ✅ Decreased opacity
           }}
         />
         {/* Overlay with stronger gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#F0F4F4]/95 via-[#F0F4F4]/80 to-[#c8ebd7]/60" />
+        <div className="absolute inset-0 bg-linear-to-br from-[#F0F4F4]/95 via-[#F0F4F4]/80 to-[#c8ebd7]/60" />
       </div>
 
       {/* Floating decorative orbs */}
