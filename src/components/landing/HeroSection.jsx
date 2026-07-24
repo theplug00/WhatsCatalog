@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 // ✅ Import the image
 import heroBg from "@/assets/9b46e2b8-167c-4635-b55f-7f06170a7c99.png";
 
-const PHONE_IMG = "@/assets/phone.png"; 
+import phoneBg from "@/assets/phone-bg.png"; 
 
 export default function HeroSection() {
   return (
