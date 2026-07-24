@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { MessageCircle, ArrowRight, ShieldCheck, Zap, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const HERO_BG = "https://media.base44.com/images/public/6a383a8b348b95defff04d98/93bd8f6a3_generated_bdac4038.png";
+const HERO_BG = "src/assets/9b46e2b8-167c-4635-b55f-7f06170a7c99.png";
 const PHONE_IMG = "https://media.base44.com/images/public/6a383a8b348b95defff04d98/6edd9ca0b_generated_10249565.png";
 
 export default function HeroSection() {
