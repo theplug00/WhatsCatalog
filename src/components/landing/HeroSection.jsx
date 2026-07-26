@@ -146,7 +146,7 @@ export default function HeroSection() {
                   className="absolute -right-4 bottom-1/4 glass-heavy rounded-xl px-4 py-2 shadow-lg"
                 >
                   <p className="text-xs text-[#0B2E2A]/60">Best Seller</p>
-                  <p className="text-sm font-bold text-primary">$49.99</p>
+                  <p className="text-sm font-bold text-primary">¢49.99</p>
                 </motion.div>
               </div>
             </div>

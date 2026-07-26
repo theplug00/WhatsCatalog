@@ -30,6 +30,7 @@ import { Navigate } from 'react-router-dom';
 import SuperAdminAnalytics from '@/pages/superadmin/SuperAdminAnalytics';
 import SuperAdminNotifications from '@/pages/superadmin/SuperAdminNotifications';
 import VendorAnalytics from '@/pages/VendorAnalytics';
+import VendorProfilePage from '@/pages/VendorProfilePage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -84,6 +85,7 @@ const AuthenticatedApp = () => {
       {/* ✅ Vendor routes - Protected */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
         <Route path="/vendor/admin" element={<VendorAdmin />} />
+        <Route path="profile" element={<VendorProfilePage />} />
         <Route path="/vendor/admin/orders" element={<VendorOrders />} />
         <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
         <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />

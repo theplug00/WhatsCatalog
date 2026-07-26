@@ -12,13 +12,15 @@ import {
   CreditCard, 
   User, 
   HelpCircle,
-  BarChart3  // ✅ Added BarChart3
+  BarChart3,
+  Setings  // ✅ Added BarChart3
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import SupportContact from "@/components/vendor/SupportContact";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/vendor/admin", icon: LayoutDashboard },
+  { label: "Profile", href: "/vendor/admin/profile", icon: User },
   { label: "Products", href: "/vendor/admin#products", icon: Package },
   { label: "Orders", href: "/vendor/admin/orders", icon: ClipboardList },
   { label: "Analytics", href: "/vendor/admin/analytics", icon: BarChart3 }, // ✅ Added

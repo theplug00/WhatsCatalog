@@ -11,7 +11,6 @@ import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
 import ProductCard from "@/components/vendor/ProductCard";
 import ProductForm from "@/components/vendor/ProductForm";
 import VendorSummary from "@/components/vendor/VendorSummary";
-import VendorProfile from "@/components/vendor/VendorProfile";
 import BulkEditBar from "@/components/vendor/BulkEditBar";
 import BulkEditModal from "@/components/vendor/BulkEditModal";
 import { Button } from "@/components/ui/button";

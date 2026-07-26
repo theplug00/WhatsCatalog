@@ -5,7 +5,7 @@ import {
   ShoppingBag, Clock, CheckCircle, AlertCircle,
   Truck, Smartphone, Banknote, ChevronRight,
   Loader2, CreditCard, Send, Calendar,
-  Mail, ArrowLeft
+  Mail, ArrowLeft, Loader
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/api/supabase";
 import { toast } from "@/components/ui/use-toast";
-import { MOMO_NETWORKS, detectMomoNetwork } from "@/lib/paymentTypes";
+import { PAYMENT_METHODS, MOMO_NETWORKS, detectMomoNetwork } from "@/lib/paymentTypes";
 
 // ============================================
 // ANIMATION VARIANTS
@@ -29,7 +29,6 @@ const fadeInUp = {
 // MAIN COMPONENT
 // ============================================
 export default function CheckoutModal({ product, onClose, onSuccess, whatsappNumber }) {
-  const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     name: "",
     phone: "",
@@ -40,12 +39,6 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState(null);
-  const [paymentDetails, setPaymentDetails] = useState({
-    network: "",
-    momoNumber: "",
-    confirmNumber: "",
-  });
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderId, setOrderId] = useState(null);
 
@@ -58,8 +51,6 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
 
   // Reset form when product changes
   useEffect(() => {
-    setStep(1);
-    setPaymentMethod(null);
     setOrderComplete(false);
     setForm({
       name: "",
@@ -79,8 +70,8 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
     }
   };
 
-  // Validate step 1
-  const validateStep1 = () => {
+  // Validate form
+  const validateForm = () => {
     const errs = {};
     if (!form.name.trim()) errs.name = "Name is required";
     if (!form.phone.trim()) errs.phone = "Phone number is required";
@@ -91,56 +82,30 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
     return Object.keys(errs).length === 0;
   };
 
-  // Go to payment step
-  const handleContinue = () => {
-    if (validateStep1()) {
-      setStep(2);
-    }
-  };
-
-  // Validate payment
-  const validatePayment = () => {
-    if (paymentMethod === 'cod') return true;
-    
-    if (paymentMethod === 'momo') {
-      const errs = {};
-      if (!paymentDetails.momoNumber || paymentDetails.momoNumber.length < 10) {
-        errs.momoNumber = "Valid phone number required";
-      }
-      if (!paymentDetails.network) {
-        errs.network = "Please select your network";
-      }
-      if (paymentDetails.momoNumber !== paymentDetails.confirmNumber) {
-        errs.confirmNumber = "Numbers do not match";
-      }
-      setErrors(errs);
-      return Object.keys(errs).length === 0;
-    }
-    return false;
-  };
-
-  // Place order
+  // Place order - Send WhatsApp message
   const handlePlaceOrder = async () => {
-    if (!validatePayment()) return;
+    if (!validateForm()) return;
     
     setLoading(true);
     try {
-    const orderData = {
-  customer_name: form.name,
-  customer_phone: form.phone,
-  customer_email: form.email || "",
-  product_name: product.name,
-  product_id: product.id,
-  vendor_id: product.vendor_id,
-  quantity: form.quantity,
-  total_price: totalPrice,
-  delivery_address: form.address,
-  notes: form.notes || "",
-  status: 'new',  // ✅ Use 'new' for all orders
-  payment_method: paymentMethod,
-  payment_status: 'pending',
-  created_date: new Date().toISOString(),
-};
+      // Save order to Supabase
+      const orderData = {
+        customer_name: form.name,
+        customer_phone: form.phone,
+        customer_email: form.email || "",
+        product_name: product.name,
+        product_id: product.id,
+        vendor_id: product.vendor_id,
+        quantity: form.quantity,
+        total_price: totalPrice,
+        delivery_address: form.address,
+        notes: form.notes || "",
+        status: 'new',
+        created_date: new Date().toISOString(),
+        // ⏳ Payment fields commented out for now
+        // payment_method: null,
+        // payment_status: null,
+      };
 
       const { data, error } = await supabase
         .from('orders')
@@ -152,13 +117,13 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
 
       setOrderId(data.id);
       
-      // Send WhatsApp message
+      // Send WhatsApp message to vendor
       await sendWhatsAppMessage(data);
 
       setOrderComplete(true);
       toast({
-        title: "Order placed successfully!",
-        description: "Your order has been confirmed.",
+        title: "✅ Order placed successfully!",
+        description: "Check your WhatsApp for confirmation.",
         duration: 4000,
       });
 
@@ -166,14 +131,15 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
         onSuccess(data);
       }
 
+      // Close after delay
       setTimeout(() => {
         onClose();
-      }, 3000);
+      }, 4000);
 
     } catch (err) {
       console.error('Order error:', err);
       toast({
-        title: "Failed to place order",
+        title: "❌ Failed to place order",
         description: err.message || "Please try again",
         variant: "destructive",
         duration: 3000,
@@ -183,31 +149,23 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
     }
   };
 
-  // Send WhatsApp message
+  // Send WhatsApp message to vendor with all details
   const sendWhatsAppMessage = async (order) => {
     const message = 
-      `📦 *New Order Received!*%0A%0A` +
+      `🛍️ *New Order Received!*%0A%0A` +
       `*Customer:* ${order.customer_name}%0A` +
       `*Phone:* ${order.customer_phone}%0A` +
+      `*Email:* ${order.customer_email || 'Not provided'}%0A` +
       `*Product:* ${order.product_name}%0A` +
       `*Quantity:* ${order.quantity}%0A` +
       `*Total:* GH₵${order.total_price.toFixed(2)}%0A` +
-      `*Delivery:* ${order.delivery_address || 'Not specified'}%0A` +
-      `*Payment Method:* ${paymentMethod === 'cod' ? 'Cash on Delivery' : 'Mobile Money'}%0A` +
+      `*Delivery Address:* ${order.delivery_address || 'Not specified'}%0A` +
+      `*Notes:* ${order.notes || 'None'}%0A` +
       `*Order ID:* ${order.id.substring(0, 8)}%0A%0A` +
-      `_Please confirm and process this order._`;
+      `_Please contact the customer to confirm payment and delivery._`;
 
     const whatsappUrl = `https://wa.me/${vendorWhatsApp}?text=${message}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-  };
-
-  // Auto-detect mobile network
-  const detectNetwork = (phone) => {
-    const cleaned = phone.replace(/[^0-9]/g, '');
-    const network = detectMomoNetwork(cleaned);
-    if (network) {
-      setPaymentDetails(prev => ({ ...prev, network }));
-    }
   };
 
   // If no product, return null
@@ -230,7 +188,8 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
           </div>
           <h2 className="text-2xl font-bold text-[#0B2E2A]">Order Placed! 🎉</h2>
           <p className="text-[#0B2E2A]/60 mt-2">
-            Your order has been confirmed. Check your WhatsApp for confirmation.
+            Your order has been sent to the vendor. 
+            Check your WhatsApp for confirmation.
           </p>
           <div className="mt-4 p-4 bg-primary/5 rounded-xl">
             <p className="text-sm font-semibold text-[#0B2E2A]">Order ID</p>
@@ -248,7 +207,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
   }
 
   // ============================================
-  // MAIN CHECKOUT MODAL
+  // MAIN CHECKOUT MODAL (Simplified)
   // ============================================
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -267,10 +226,10 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
             <div>
               <h2 className="text-xl font-bold text-[#0B2E2A] flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5 text-primary" />
-                Checkout
+                Order Details
               </h2>
               <p className="text-xs text-[#0B2E2A]/50">
-                Step {step} of 2
+                Fill in your details to place your order
               </p>
             </div>
             <button
@@ -303,295 +262,156 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
             </p>
           </div>
 
-          {/* ============================================ */}
-          {/* STEP 1: CUSTOMER DETAILS */}
-          {/* ============================================ */}
-          {step === 1 && (
-            <motion.div {...fadeInUp} className="space-y-4">
-              {/* Name */}
-              <div>
-                <Label htmlFor="name" className="text-sm font-medium text-[#0B2E2A]">
-                  Full Name <span className="text-red-500">*</span>
-                </Label>
-                <div className="relative mt-1">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
-                  <Input
-                    id="name"
-                    value={form.name}
-                    onChange={(e) => handleChange("name", e.target.value)}
-                    placeholder="John Doe"
-                    className="pl-10 rounded-xl"
-                  />
-                </div>
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
-              </div>
-
-              {/* Phone */}
-              <div>
-                <Label htmlFor="phone" className="text-sm font-medium text-[#0B2E2A]">
-                  Phone Number <span className="text-red-500">*</span>
-                </Label>
-                <div className="relative mt-1">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => handleChange("phone", e.target.value)}
-                    placeholder="024XXXXXXX"
-                    className="pl-10 rounded-xl"
-                  />
-                </div>
-                {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone}</p>}
-              </div>
-
-              {/* Email */}
-              <div>
-                <Label htmlFor="email" className="text-sm font-medium text-[#0B2E2A]">
-                  Email (optional)
-                </Label>
-                <div className="relative mt-1">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={form.email}
-                    onChange={(e) => handleChange("email", e.target.value)}
-                    placeholder="john@example.com"
-                    className="pl-10 rounded-xl"
-                  />
-                </div>
-              </div>
-
-              {/* Address */}
-              <div>
-                <Label htmlFor="address" className="text-sm font-medium text-[#0B2E2A]">
-                  Delivery Address <span className="text-red-500">*</span>
-                </Label>
-                <div className="relative mt-1">
-                  <MapPin className="absolute left-3 top-3 w-4 h-4 text-[#0B2E2A]/40" />
-                  <Textarea
-                    id="address"
-                    value={form.address}
-                    onChange={(e) => handleChange("address", e.target.value)}
-                    placeholder="Street, city, landmark..."
-                    className="pl-10 rounded-xl min-h-15"
-                  />
-                </div>
-                {errors.address && <p className="text-xs text-red-500 mt-1">{errors.address}</p>}
-              </div>
-
-              {/* Quantity & Total */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="quantity" className="text-sm font-medium text-[#0B2E2A]">
-                    Quantity
-                  </Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    min="1"
-                    max={product.stock || 999}
-                    value={form.quantity}
-                    onChange={(e) => handleChange("quantity", parseInt(e.target.value) || 1)}
-                    className="rounded-xl"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-[#0B2E2A]">Total</Label>
-                  <div className="h-10 rounded-xl bg-primary/5 flex items-center px-3 text-sm font-bold text-primary">
-                    GH₵{totalPrice.toFixed(2)}
-                  </div>
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div>
-                <Label htmlFor="notes" className="text-sm font-medium text-[#0B2E2A]">
-                  Order Notes (optional)
-                </Label>
-                <Textarea
-                  id="notes"
-                  value={form.notes}
-                  onChange={(e) => handleChange("notes", e.target.value)}
-                  placeholder="Special instructions..."
-                  className="rounded-xl min-h-12.5"
+          {/* ✅ SIMPLIFIED FORM - NO PAYMENT OPTIONS */}
+          <motion.div {...fadeInUp} className="space-y-4">
+            {/* Name */}
+            <div>
+              <Label htmlFor="name" className="text-sm font-medium text-[#0B2E2A]">
+                Full Name <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative mt-1">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
+                <Input
+                  id="name"
+                  value={form.name}
+                  onChange={(e) => handleChange("name", e.target.value)}
+                  placeholder="John Doe"
+                  className="pl-10 rounded-xl"
                 />
               </div>
+              {errors.name && (
+                <p className="text-xs text-red-500 mt-1">{errors.name}</p>
+              )}
+            </div>
 
-              <Button
-                onClick={handleContinue}
-                className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold"
-              >
-                Continue to Payment
-                <ChevronRight className="w-4 h-4 ml-2" />
-              </Button>
-            </motion.div>
-          )}
-
-          {/* ============================================ */}
-          {/* STEP 2: PAYMENT */}
-          {/* ============================================ */}
-          {step === 2 && (
-            <motion.div {...fadeInUp} className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-[#0B2E2A]/50">
-                <button
-                  onClick={() => setStep(1)}
-                  className="text-primary hover:underline flex items-center gap-1"
-                >
-                  <ArrowLeft className="w-3 h-3" />
-                  Back
-                </button>
-                <span>•</span>
-                <span>Payment</span>
+            {/* Phone */}
+            <div>
+              <Label htmlFor="phone" className="text-sm font-medium text-[#0B2E2A]">
+                Phone Number <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative mt-1">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={(e) => handleChange("phone", e.target.value)}
+                  placeholder="024XXXXXXX"
+                  className="pl-10 rounded-xl"
+                />
               </div>
+              {errors.phone && (
+                <p className="text-xs text-red-500 mt-1">{errors.phone}</p>
+              )}
+            </div>
 
-              {/* Payment Methods */}
-              <div className="space-y-2">
-                <p className="text-sm font-semibold text-[#0B2E2A]">Select Payment Method</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { id: 'cod', label: 'Cash on Delivery', icon: <Truck className="w-4 h-4" /> },
-                    { id: 'momo', label: 'Mobile Money', icon: <Smartphone className="w-4 h-4" /> },
-                  ].map((method) => (
-                    <button
-                      key={method.id}
-                      onClick={() => setPaymentMethod(method.id)}
-                      className={`p-3 rounded-xl border-2 transition-all text-center ${
-                        paymentMethod === method.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-[#0B2E2A]/10 hover:border-primary/30'
-                      }`}
-                    >
-                      <div className="flex items-center justify-center gap-1 text-sm font-semibold text-[#0B2E2A]">
-                        {method.icon}
-                        {method.label}
-                      </div>
-                    </button>
-                  ))}
+            {/* Email (Optional) */}
+            <div>
+              <Label htmlFor="email" className="text-sm font-medium text-[#0B2E2A]">
+                Email (optional)
+              </Label>
+              <div className="relative mt-1">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => handleChange("email", e.target.value)}
+                  placeholder="john@example.com"
+                  className="pl-10 rounded-xl"
+                />
+              </div>
+            </div>
+
+            {/* Address */}
+            <div>
+              <Label htmlFor="address" className="text-sm font-medium text-[#0B2E2A]">
+                Delivery Address <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative mt-1">
+                <MapPin className="absolute left-3 top-3 w-4 h-4 text-[#0B2E2A]/40" />
+                <Textarea
+                  id="address"
+                  value={form.address}
+                  onChange={(e) => handleChange("address", e.target.value)}
+                  placeholder="Street, city, landmark..."
+                  className="pl-10 rounded-xl min-h-15"
+                />
+              </div>
+              {errors.address && (
+                <p className="text-xs text-red-500 mt-1">{errors.address}</p>
+              )}
+            </div>
+
+            {/* Quantity & Total */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="quantity" className="text-sm font-medium text-[#0B2E2A]">
+                  Quantity
+                </Label>
+                <Input
+                  id="quantity"
+                  type="number"
+                  min="1"
+                  max={product.stock || 999}
+                  value={form.quantity}
+                  onChange={(e) => handleChange("quantity", parseInt(e.target.value) || 1)}
+                  className="rounded-xl"
+                />
+              </div>
+              <div>
+                <Label className="text-sm font-medium text-[#0B2E2A]">Total</Label>
+                <div className="h-10 rounded-xl bg-primary/5 flex items-center px-3 text-sm font-bold text-primary">
+                  GH₵{totalPrice.toFixed(2)}
                 </div>
               </div>
+            </div>
 
-              {/* COD Details */}
-              {paymentMethod === 'cod' && (
-                <motion.div {...fadeInUp} className="space-y-3">
-                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-200">
-                    <div className="flex items-center gap-2 text-amber-700">
-                      <Truck className="w-5 h-5" />
-                      <p className="text-sm font-medium">Cash on Delivery</p>
-                    </div>
-                    <p className="text-xs text-amber-600/80 mt-1">
-                      Pay when your order arrives. Have the exact amount ready.
-                    </p>
-                  </div>
-                </motion.div>
+            {/* Notes */}
+            <div>
+              <Label htmlFor="notes" className="text-sm font-medium text-[#0B2E2A]">
+                Order Notes (optional)
+              </Label>
+              <Textarea
+                id="notes"
+                value={form.notes}
+                onChange={(e) => handleChange("notes", e.target.value)}
+                placeholder="Special instructions..."
+                className="rounded-xl min-h-12.5"
+              />
+            </div>
+
+            {/* ✅ Simple Place Order Button - WhatsApp Only */}
+            <Button
+              onClick={handlePlaceOrder}
+              disabled={loading}
+              className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Placing Order...
+                </>
+              ) : (
+                <>
+                  <MessageCircle className="w-4 h-4 mr-2" />
+                  Order via WhatsApp
+                </>
               )}
+            </Button>
 
-              {/* MoMo Details */}
-              {paymentMethod === 'momo' && (
-                <motion.div {...fadeInUp} className="space-y-3">
-                  <div className="p-4 rounded-xl bg-blue-50 border border-blue-200">
-                    <div className="flex items-center gap-2 text-blue-700">
-                      <Smartphone className="w-5 h-5" />
-                      <p className="text-sm font-medium">Mobile Money</p>
-                    </div>
-                    <p className="text-xs text-blue-600/80 mt-1">
-                      We'll send a payment request to your phone
-                    </p>
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium text-[#0B2E2A]">Select Network</Label>
-                    <div className="grid grid-cols-3 gap-2 mt-1">
-                      {MOMO_NETWORKS.map((network) => (
-                        <button
-                          key={network.id}
-                          type="button"
-                          onClick={() => setPaymentDetails(prev => ({ ...prev, network: network.id }))}
-                          className={`p-2 rounded-xl text-xs font-medium transition-all ${
-                            paymentDetails.network === network.id
-                              ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                              : 'bg-[#F0F4F4] text-[#0B2E2A]/60 hover:bg-primary/10'
-                          }`}
-                        >
-                          {network.name.split(' ')[0]}
-                        </button>
-                      ))}
-                    </div>
-                    {errors.network && <p className="text-xs text-red-500 mt-1">{errors.network}</p>}
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium text-[#0B2E2A]">Mobile Money Number</Label>
-                    <Input
-                      type="tel"
-                      value={paymentDetails.momoNumber}
-                      onChange={(e) => {
-                        const val = e.target.value.replace(/[^0-9]/g, '');
-                        setPaymentDetails(prev => ({ ...prev, momoNumber: val }));
-                        detectNetwork(val);
-                      }}
-                      placeholder="024XXXXXXX"
-                      className="rounded-xl mt-1"
-                    />
-                    {errors.momoNumber && <p className="text-xs text-red-500 mt-1">{errors.momoNumber}</p>}
-                  </div>
-
-                  <div>
-                    <Label className="text-sm font-medium text-[#0B2E2A]">Confirm Number</Label>
-                    <Input
-                      type="tel"
-                      value={paymentDetails.confirmNumber}
-                      onChange={(e) => setPaymentDetails(prev => ({ 
-                        ...prev, 
-                        confirmNumber: e.target.value.replace(/[^0-9]/g, '') 
-                      }))}
-                      placeholder="Confirm number"
-                      className="rounded-xl mt-1"
-                    />
-                    {errors.confirmNumber && <p className="text-xs text-red-500 mt-1">{errors.confirmNumber}</p>}
-                  </div>
-
-                  {paymentDetails.network && (
-                    <div className="p-2 rounded-xl bg-green-50 text-green-700 text-xs flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" />
-                      Network: {MOMO_NETWORKS.find(n => n.id === paymentDetails.network)?.name}
-                    </div>
-                  )}
-                </motion.div>
-              )}
-
-              {!paymentMethod && (
-                <p className="text-center text-sm text-[#0B2E2A]/40 py-4">
-                  Please select a payment method to continue
-                </p>
-              )}
-
-              {paymentMethod && (
-                <Button
-                  onClick={handlePlaceOrder}
-                  disabled={loading}
-                  className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Banknote className="w-4 h-4 mr-2" />
-                      Place Order - GH₵{totalPrice.toFixed(2)}
-                    </>
-                  )}
-                </Button>
-              )}
-
-              <p className="text-xs text-center text-[#0B2E2A]/40">
-                By placing your order, you agree to our terms and conditions
+            {/* Info Message */}
+            <div className="p-3 rounded-xl bg-blue-50 border border-blue-100 text-xs text-blue-600/80 text-center">
+              <p>
+                Your order details will be sent to the vendor via WhatsApp. 
+                The vendor will contact you to confirm payment and delivery.
               </p>
-            </motion.div>
-          )}
+            </div>
+
+            <p className="text-xs text-center text-[#0B2E2A]/40">
+              By placing your order, you agree to our terms and conditions
+            </p>
+          </motion.div>
         </div>
       </motion.div>
     </div>
