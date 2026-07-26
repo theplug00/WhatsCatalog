@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { 
   Store, 
@@ -12,18 +12,17 @@ import {
   CreditCard, 
   User, 
   HelpCircle,
-  BarChart3,
-  Settings  // ✅ Added BarChart3
+  BarChart3
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import SupportContact from "@/components/vendor/SupportContact";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/vendor/admin", icon: LayoutDashboard },
-  { label: "Profile", href: "/vendor/admin/profile", icon: User },
   { label: "Products", href: "/vendor/admin#products", icon: Package },
   { label: "Orders", href: "/vendor/admin/orders", icon: ClipboardList },
-  { label: "Analytics", href: "/vendor/admin/analytics", icon: BarChart3 }, // ✅ Added
+  { label: "Analytics", href: "/vendor/admin/analytics", icon: BarChart3 },
+  { label: "Profile", href: "/vendor/admin/profile", icon: User },
   { label: "Subscription", href: "/vendor/admin/subscription", icon: CreditCard },
 ];
 
@@ -33,19 +32,16 @@ export default function VendorAdminLayout({ children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
 
-  // Get current user and vendor profile
   useEffect(() => {
     const getUser = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
-        
         if (error || !user) {
-          console.error('No user found');
           navigate('/vendor/login');
           return;
         }
-
         setUser(user);
 
         const { data: vendorData, error: vendorError } = await supabase
@@ -55,11 +51,9 @@ export default function VendorAdminLayout({ children }) {
           .single();
 
         if (vendorError) {
-          console.error('Vendor not found:', vendorError);
           navigate('/vendor/register');
           return;
         }
-
         setVendor(vendorData);
       } catch (err) {
         console.error('Error fetching user:', err);
@@ -71,34 +65,26 @@ export default function VendorAdminLayout({ children }) {
 
     getUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_OUT') {
-          navigate('/vendor/login');
-        }
-        if (event === 'SIGNED_IN' && session) {
-          setUser(session.user);
-        }
-      }
-    );
-
-    return () => {
-      subscription?.unsubscribe();
-    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') navigate('/vendor/login');
+    });
+    return () => subscription?.unsubscribe();
   }, [navigate]);
 
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      navigate('/vendor/login');
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
+    await supabase.auth.signOut();
+    navigate('/vendor/login');
   };
 
-  const displayName = vendor?.business_name || user?.email?.split('@')[0] || 'Vendor';
-  const initial = vendor?.business_name?.charAt(0)?.toUpperCase() || 
-                  user?.email?.charAt(0)?.toUpperCase() || 'V';
+  const isActive = (href) => {
+    if (href === "/vendor/admin") {
+      return location.pathname === "/vendor/admin";
+    }
+    if (href.includes("#")) {
+      return location.pathname === "/vendor/admin";
+    }
+    return location.pathname === href || location.pathname.startsWith(href);
+  };
 
   if (loading) {
     return (
@@ -108,9 +94,13 @@ export default function VendorAdminLayout({ children }) {
     );
   }
 
+  const displayName = vendor?.business_name || user?.email?.split('@')[0] || 'Vendor';
+  const initial = vendor?.business_name?.charAt(0)?.toUpperCase() || 
+                  user?.email?.charAt(0)?.toUpperCase() || 'V';
+
   return (
     <div className="min-h-screen bg-[#F0F4F4] flex">
-      {/* Sidebar (desktop) */}
+      {/* Desktop Sidebar */}
       <aside className="hidden lg:flex w-64 flex-col glass-nav border-r border-white/30 fixed h-full z-40">
         <div className="p-6">
           <Link to="/vendor" className="flex items-center gap-2.5">
@@ -131,7 +121,11 @@ export default function VendorAdminLayout({ children }) {
             <Link
               key={item.label}
               to={item.href}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#0B2E2A]/70 hover:bg-primary/10 hover:text-primary transition-all mb-1"
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-1 ${
+                isActive(item.href)
+                  ? "bg-primary text-white"
+                  : "text-[#0B2E2A]/70 hover:bg-primary/10 hover:text-primary"
+              }`}
             >
               <item.icon className="w-4 h-4" />
               {item.label}
@@ -145,7 +139,7 @@ export default function VendorAdminLayout({ children }) {
 
         <div className="p-4 border-t border-white/30">
           <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
               {initial}
             </div>
             <div className="flex-1 min-w-0">
@@ -165,7 +159,7 @@ export default function VendorAdminLayout({ children }) {
         </div>
       </aside>
 
-      {/* Mobile top bar */}
+      {/* Mobile Top Bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 glass-nav border-b border-white/30">
         <div className="flex items-center justify-between px-5 h-16">
           <Link to="/vendor" className="flex items-center gap-2.5">
@@ -185,7 +179,7 @@ export default function VendorAdminLayout({ children }) {
         </div>
       </div>
 
-      {/* Mobile sidebar overlay */}
+      {/* Mobile Sidebar */}
       {mobileOpen && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -212,7 +206,11 @@ export default function VendorAdminLayout({ children }) {
                 key={item.label}
                 to={item.href}
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-[#0B2E2A]/70 hover:bg-primary/10 transition-all mb-1"
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all mb-1 ${
+                  isActive(item.href)
+                    ? "bg-primary text-white"
+                    : "text-[#0B2E2A]/70 hover:bg-primary/10"
+                }`}
               >
                 <item.icon className="w-4 h-4" />
                 {item.label}
@@ -232,7 +230,7 @@ export default function VendorAdminLayout({ children }) {
         </motion.div>
       )}
 
-      {/* Main content */}
+      {/* Main Content */}
       <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
         <div className="p-5 md:p-8">{children}</div>
       </main>
