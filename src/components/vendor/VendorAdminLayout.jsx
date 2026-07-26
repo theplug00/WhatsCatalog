@@ -13,7 +13,7 @@ import {
   User, 
   HelpCircle,
   BarChart3,
-  Setings  // ✅ Added BarChart3
+  Settings  // ✅ Added BarChart3
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import SupportContact from "@/components/vendor/SupportContact";

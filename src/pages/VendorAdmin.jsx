@@ -1,59 +1,85 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { 
-  Plus, Package, Loader2, Search, AlertCircle, 
-  DollarSign, TrendingUp, Boxes, AlertTriangle, 
-  CheckSquare, Eye, Copy, Check, Store,
-  X, ChevronRight, Trash2, Edit, Filter
+  Store, Mail, Phone, MessageCircle, MapPin, 
+  Tag, Pencil, Loader2, Upload, Check, User,
+  Smartphone, CreditCard, Save, X,
+  AlertCircle
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
-import ProductCard from "@/components/vendor/ProductCard";
-import ProductForm from "@/components/vendor/ProductForm";
-import VendorSummary from "@/components/vendor/VendorSummary";
-import BulkEditBar from "@/components/vendor/BulkEditBar";
-import BulkEditModal from "@/components/vendor/BulkEditModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
-import { getPlanLimits } from "@/lib/vendorPlans";
 
-const LOW_STOCK_THRESHOLD = 5;
-
-// Animation variants
+// ============================================
+// ANIMATION VARIANTS
+// ============================================
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-  transition: { duration: 0.3 }
+  transition: { duration: 0.4 }
 };
 
-export default function VendorAdmin() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showForm, setShowForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState(null);
-  const [deletingId, setDeletingId] = useState(null);
-  const [search, setSearch] = useState("");
-  const [showLowStock, setShowLowStock] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null);
-  const [selectMode, setSelectMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState(new Set());
-  const [showBulkEdit, setShowBulkEdit] = useState(false);
-  const [vendorId, setVendorId] = useState("");
-  const [vendor, setVendor] = useState(null);
-  const [vendorPlan, setVendorPlan] = useState("free");
-  const [productCount, setProductCount] = useState(0);
-  const [showStoreLink, setShowStoreLink] = useState(true);
-  const [copied, setCopied] = useState(false);
+// ============================================
+// DETAIL ROW COMPONENT
+// ============================================
+function DetailRow({ icon: Icon, label, editing, value, formValue, onChange, placeholder }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-white/40 border border-white/30 px-3 py-2.5">
+      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+        <Icon className="w-3.5 h-3.5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-semibold text-[#0B2E2A]/40 uppercase tracking-wide">
+          {label}
+        </p>
+        {editing ? (
+          <Input
+            value={formValue || ""}
+            onChange={onChange}
+            placeholder={placeholder}
+            className="h-7 text-sm mt-0.5 p-0 border-0 bg-transparent focus-visible:ring-0"
+          />
+        ) : (
+          <p className="text-sm font-medium text-[#0B2E2A] truncate">
+            {value || "—"}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
-  // Load vendor data
+// ============================================
+// MAIN COMPONENT
+// ============================================
+export default function VendorProfilePage() {
+  const [vendor, setVendor] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [form, setForm] = useState({});
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [error, setError] = useState("");
+
   useEffect(() => {
-    const getVendorData = async () => {
+    const loadVendorProfile = async () => {
+      setLoading(true);
+      setError("");
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        if (!user) {
+          setError('Please login to view your profile.');
+          setLoading(false);
+          return;
+        }
+
+        setUser(user);
 
         const { data: vendorData, error: vendorError } = await supabase
           .from('vendors')
@@ -62,600 +88,357 @@ export default function VendorAdmin() {
           .single();
 
         if (vendorError) {
-          console.error('Vendor not found:', vendorError);
+          console.warn('Vendor profile not found:', vendorError);
+          setError('Vendor profile not found.');
+          setLoading(false);
           return;
         }
 
         setVendor(vendorData);
-        setVendorId(vendorData.id);
-        setVendorPlan(vendorData.plan || 'free');
+        setForm(vendorData);
       } catch (err) {
-        console.error('Error getting vendor data:', err);
+        console.error('Error loading vendor profile:', err);
+        setError('Failed to load vendor profile');
+      } finally {
+        setLoading(false);
       }
     };
 
-    getVendorData();
+    loadVendorProfile();
   }, []);
 
-  // Load products
-  const loadProducts = useCallback(async () => {
-    if (!vendorId) return;
-    
-    setLoading(true);
+  // Upload logo
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image must be under 5MB");
+      return;
+    }
+
+    setUploadingLogo(true);
     setError("");
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('vendor_id', vendorId)
-        .order('created_at', { ascending: false })
-        .limit(100);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `vendor-logos/${fileName}`;
 
-      if (error) throw error;
-      setProducts(data || []);
-      setProductCount(data?.length || 0);
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('vendor-logos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('vendor-logos')
+        .getPublicUrl(filePath);
+
+      setLogoPreview(publicUrl);
+      setForm((prev) => ({ ...prev, logo_url: publicUrl }));
+      
+      toast({
+        title: "Logo uploaded",
+        description: "Your logo has been uploaded successfully.",
+        duration: 3000,
+      });
     } catch (err) {
-      console.error('Error loading products:', err);
-      setError("Failed to load products. Please refresh the page.");
+      console.error('Upload error:', err);
+      setError('Failed to upload logo. Please try again.');
     } finally {
-      setLoading(false);
+      setUploadingLogo(false);
     }
-  }, [vendorId]);
-
-  useEffect(() => {
-    if (vendorId) {
-      loadProducts();
-    }
-  }, [loadProducts, vendorId]);
-
-  // Product limits
-  const planLimits = getPlanLimits(vendorPlan);
-  const maxProducts = planLimits?.products || 25;
-  const unlimited = maxProducts === -1;
-  const canAddMore = unlimited || productCount < maxProducts;
-  const remaining = unlimited ? '∞' : Math.max(0, maxProducts - productCount);
-
-  // Copy store link
-  const copyStoreLink = () => {
-    const url = `${window.location.origin}/store/${vendor?.slug}`;
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    toast({
-      title: "Link copied",
-      description: "Store URL copied to clipboard",
-      duration: 2000,
-    });
-    setTimeout(() => setCopied(false), 2000);
   };
 
-  // Save product
-  const handleSave = async (data) => {
+  // Save profile
+  const handleSave = async () => {
+    setSaving(true);
+    setError("");
     try {
-      const productData = { 
-        ...data, 
-        vendor_id: vendorId 
+      const updates = {
+        business_name: form.business_name,
+        owner_name: form.owner_name,
+        business_phone: form.business_phone || form.phone || "",
+        whatsapp_number: form.whatsapp_number || "",
+        category: form.category || "",
+        business_address: form.business_address || form.address || "",
+        logo_url: form.logo_url || "",
+        momo_number: form.momo_number || "",
+        momo_network: form.momo_network || "",
+        updated_at: new Date().toISOString()
       };
 
-      if (editingProduct) {
-        const { error } = await supabase
-          .from('products')
-          .update({
-            name: productData.name,
-            description: productData.description,
-            price: productData.price,
-            category: productData.category,
-            stock: productData.stock,
-            status: productData.status,
-            image_url: productData.image_url,
-            gallery_images: productData.gallery_images || [],
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', editingProduct.id);
-
-        if (error) throw error;
-        
-        toast({
-          title: "Product updated",
-          description: `${productData.name} has been updated.`,
-          duration: 3000,
-        });
-      } else {
-        const { error } = await supabase
-          .from('products')
-          .insert([{
-            name: productData.name,
-            description: productData.description,
-            price: productData.price,
-            category: productData.category,
-            stock: productData.stock,
-            status: productData.status,
-            image_url: productData.image_url || "",
-            gallery_images: productData.gallery_images || [],
-            vendor_id: productData.vendor_id
-          }]);
-
-        if (error) throw error;
-        
-        toast({
-          title: "Product added",
-          description: `${productData.name} has been added to your catalog.`,
-          duration: 3000,
-        });
-      }
-
-      await loadProducts();
-      setShowForm(false);
-      setEditingProduct(null);
-    } catch (err) {
-      console.error('Error saving product:', err);
-      setError("Failed to save product. Please try again.");
-      toast({
-        title: "Error",
-        description: "Failed to save product. Please try again.",
-        variant: "destructive",
-        duration: 3000,
-      });
-    }
-  };
-
-  // Edit product
-  const handleEdit = (product) => {
-    setEditingProduct(product);
-    setShowForm(true);
-  };
-
-  // Delete product
-  const handleDelete = async (product) => {
-    setDeletingId(product.id);
-    try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', product.id);
+      const { data, error } = await supabase
+        .from('vendors')
+        .update(updates)
+        .eq('id', vendor.id)
+        .select()
+        .single();
 
       if (error) throw error;
+
+      setVendor(data);
+      setForm(data);
+      setEditing(false);
+      setLogoPreview(null);
       
-      setProducts((prev) => prev.filter((p) => p.id !== product.id));
-      setConfirmDelete(null);
       toast({
-        title: "Product deleted",
-        description: `${product.name} has been removed.`,
+        title: "Profile updated",
+        description: "Your vendor profile has been updated successfully.",
         duration: 3000,
       });
     } catch (err) {
-      console.error('Error deleting product:', err);
-      setError("Failed to delete product.");
-      toast({
-        title: "Error",
-        description: "Failed to delete product.",
-        variant: "destructive",
-        duration: 3000,
-      });
+      console.error('Save error:', err);
+      setError('Failed to save profile. Please try again.');
     } finally {
-      setDeletingId(null);
+      setSaving(false);
     }
   };
 
-  // Bulk update
-  const handleBulkApply = async (updates) => {
-    try {
-      const ids = Array.from(selectedIds);
-      
-      for (const id of ids) {
-        const { error } = await supabase
-          .from('products')
-          .update(updates)
-          .eq('id', id);
-
-        if (error) throw error;
-      }
-
-      await loadProducts();
-      setShowBulkEdit(false);
-      exitSelectMode();
-      toast({
-        title: "Bulk update complete",
-        description: `${ids.length} products updated successfully.`,
-        duration: 3000,
-      });
-    } catch (err) {
-      console.error('Bulk update error:', err);
-      setError("Failed to bulk update products.");
-      setShowBulkEdit(false);
-      toast({
-        title: "Error",
-        description: "Failed to bulk update products.",
-        variant: "destructive",
-        duration: 3000,
-      });
-    }
+  const handleChange = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  // Selection handlers
-  const toggleSelect = useCallback((id) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+  if (loading) {
+    return (
+      <VendorAdminLayout>
+        <div className="flex items-center justify-center py-24">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      </VendorAdminLayout>
+    );
+  }
 
-  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
-  const exitSelectMode = useCallback(() => {
-    setSelectMode(false);
-    setSelectedIds(new Set());
-  }, []);
+  if (error || !vendor) {
+    return (
+      <VendorAdminLayout>
+        <div className="glass-card rounded-3xl p-6 text-center">
+          <Store className="w-10 h-10 text-[#0B2E2A]/20 mx-auto mb-3" />
+          <p className="text-sm font-semibold text-[#0B2E2A]">
+            {error || "No vendor profile found"}
+          </p>
+          <p className="text-xs text-[#0B2E2A]/50 mt-1">
+            Your profile will appear here once your vendor account is set up.
+          </p>
+        </div>
+      </VendorAdminLayout>
+    );
+  }
 
-  // Filter products
-  const lowStockProducts = products.filter((p) => (Number(p.stock) || 0) <= LOW_STOCK_THRESHOLD);
-  const filteredProducts = products.filter((p) => {
-    const matchesSearch = p.name?.toLowerCase().includes(search.toLowerCase());
-    const matchesLowStock = !showLowStock || (Number(p.stock) || 0) <= LOW_STOCK_THRESHOLD;
-    return matchesSearch && matchesLowStock;
-  });
-
-  // Stats
-  const totalProducts = products.length;
-  const activeProducts = products.filter((p) => p.status === "active").length;
-  const totalValue = products.reduce((sum, p) => sum + (Number(p.price) || 0) * (Number(p.stock) || 0), 0);
-  const totalStock = products.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
+  const logoSrc = editing ? (logoPreview || form.logo_url) : vendor.logo_url;
 
   return (
     <VendorAdminLayout>
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-        <motion.div {...fadeInUp}>
+      <motion.div {...fadeInUp} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
           <h1 className="text-2xl md:text-3xl font-extrabold font-heading text-[#0B2E2A] flex items-center gap-3">
-            <Package className="w-8 h-8 text-primary" />
-            Products
+            <User className="w-8 h-8 text-primary" />
+            Profile
           </h1>
           <p className="text-sm text-[#0B2E2A]/50 mt-1">
-            Manage your catalog, prices, and inventory
+            Manage your vendor account details
           </p>
-        </motion.div>
-        <motion.div 
-          {...fadeInUp}
-          className="flex items-center gap-3 w-fit"
-        >
-          <Button
-            onClick={() => (selectMode ? exitSelectMode() : setSelectMode(true))}
-            variant={selectMode ? "default" : "outline"}
-            className="rounded-full px-5 font-semibold transition-all"
-          >
-            <CheckSquare className="w-4 h-4 mr-1.5" />
-            {selectMode ? "Done" : "Select"}
-          </Button>
+        </div>
+        {!editing && (
           <Button
             onClick={() => {
-              if (!canAddMore) {
-                toast({
-                  title: "Product Limit Reached",
-                  description: `You've reached your limit of ${maxProducts} products. Upgrade to add more.`,
-                  variant: "destructive",
-                  duration: 4000,
-                });
-                return;
-              }
-              setEditingProduct(null);
-              setShowForm(true);
+              setForm(vendor);
+              setLogoPreview(null);
+              setEditing(true);
             }}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-5 font-semibold glow-pulse transition-all"
-            disabled={!canAddMore}
+            className="bg-primary hover:bg-primary/90 text-white rounded-full px-5 font-semibold"
           >
-            <Plus className="w-4 h-4 mr-1.5" />
-            {canAddMore ? "Add Product" : "Limit Reached"}
+            <Pencil className="w-4 h-4 mr-1.5" />
+            Edit Profile
           </Button>
-        </motion.div>
-      </div>
-
-      {/* Store Link Section */}
-      {vendor?.is_approved && vendor?.slug && showStoreLink && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-[#0B2E2A]/5 rounded-xl border border-primary/20"
-        >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <Store className="w-5 h-5 text-primary" />
-              <div>
-                <p className="text-sm font-semibold text-[#0B2E2A]">Your Store is Live</p>
-                <p className="text-xs text-[#0B2E2A]/50">Share this link with your customers</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center bg-white/50 rounded-lg px-3 py-1.5 border border-[#0B2E2A]/10">
-                <span className="text-xs text-[#0B2E2A]/60 truncate max-w-[150px] sm:max-w-[250px]">
-                  {window.location.origin}/store/{vendor.slug}
-                </span>
-              </div>
-              <button
-                onClick={copyStoreLink}
-                className="p-2 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
-                title="Copy store link"
-              >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-              </button>
-              <button
-                onClick={() => setShowStoreLink(false)}
-                className="p-1 rounded-lg text-[#0B2E2A]/40 hover:text-[#0B2E2A] transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Product Limit Banner */}
-      {!unlimited && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`mb-6 p-3 rounded-xl border ${
-            productCount >= maxProducts 
-              ? 'bg-amber-50 border-amber-200' 
-              : 'bg-primary/5 border-primary/20'
-          }`}
-        >
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[#0B2E2A]">
-                Products: <span className="font-bold">{productCount}</span> / {maxProducts}
-              </p>
-              <div className="w-full max-w-xs h-1.5 bg-[#0B2E2A]/10 rounded-full mt-1">
-                <motion.div 
-                  className={`h-1.5 rounded-full transition-all ${
-                    productCount >= maxProducts ? 'bg-amber-500' : 'bg-primary'
-                  }`}
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min((productCount / maxProducts) * 100, 100)}%` }}
-                  transition={{ duration: 0.5 }}
-                />
-              </div>
-            </div>
-            {productCount >= maxProducts && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-amber-600 border-amber-300 hover:bg-amber-50"
-                onClick={() => window.location.href = '/vendor/admin/subscription'}
-              >
-                Upgrade Plan
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            )}
-          </div>
-        </motion.div>
-      )}
-
-      {/* Vendor Profile */}
-      <VendorProfile />
-
-      {/* Summary */}
-      {!loading && <VendorSummary products={products} />}
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: "Total Products", value: totalProducts, icon: Package },
-          { label: "Active", value: activeProducts, icon: TrendingUp },
-          { label: "In Stock", value: totalStock, icon: Boxes },
-          { label: "Inventory Value", value: `GH₵${totalValue.toFixed(0)}`, icon: DollarSign },
-        ].map((stat, i) => (
-          <motion.div
-            key={stat.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="glass-card rounded-2xl p-4"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <stat.icon className="w-4 h-4 text-primary" />
-              </div>
-            </div>
-            <p className="text-2xl font-bold text-[#0B2E2A]">{stat.value}</p>
-            <p className="text-xs text-[#0B2E2A]/50 mt-0.5">{stat.label}</p>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Search & Filter */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search products..."
-            className="rounded-full pl-10 transition-all focus:ring-2 focus:ring-primary/30"
-          />
-        </div>
-        {lowStockProducts.length > 0 && (
-          <button
-            onClick={() => setShowLowStock((v) => !v)}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-semibold transition-all whitespace-nowrap ${
-              showLowStock
-                ? "bg-amber-500 text-white shadow-lg shadow-amber-500/20"
-                : "glass-card text-amber-600 hover:bg-amber-50"
-            }`}
-          >
-            <AlertTriangle className="w-4 h-4" />
-            {showLowStock ? "Showing" : "Low Stock"}
-            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${showLowStock ? "bg-white/20" : "bg-amber-100"}`}>
-              {lowStockProducts.length}
-            </span>
-          </button>
         )}
-      </div>
+      </motion.div>
 
       {/* Error */}
       {error && (
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-6 flex items-center gap-2 text-sm text-red-600 bg-red-50 rounded-xl px-4 py-3"
+          className="mb-6 p-3 rounded-xl bg-red-50 text-red-600 text-sm flex items-center gap-2"
         >
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
+          <button onClick={() => setError("")} className="ml-auto text-sm font-semibold hover:underline">
+            Dismiss
+          </button>
         </motion.div>
       )}
 
-      {/* Products Grid */}
-      {loading ? (
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      ) : filteredProducts.length === 0 ? (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center justify-center py-24 text-center"
-        >
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-            {search ? <Search className="w-10 h-10 text-primary" /> : <Package className="w-10 h-10 text-primary" />}
-          </div>
-          <h3 className="text-lg font-bold text-[#0B2E2A] mb-1">
-            {search ? "No products found" : "No products yet"}
-          </h3>
-          <p className="text-sm text-[#0B2E2A]/50 mb-6 max-w-sm">
-            {search
-              ? "Try a different search term."
-              : "Add your first product to start selling on WhatsApp."}
-          </p>
-          {!search && canAddMore && (
-            <Button
-              onClick={() => {
-                setEditingProduct(null);
-                setShowForm(true);
-              }}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-full px-5 font-semibold"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              Add Your First Product
-            </Button>
-          )}
-        </motion.div>
-      ) : (
-        <motion.div 
-          initial="initial"
-          animate="animate"
-          variants={{
-            animate: { transition: { staggerChildren: 0.05 } }
-          }}
-          className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
-        >
-          <AnimatePresence mode="popLayout">
-            {filteredProducts.map((product) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                layout
-              >
-                <ProductCard
-                  product={product}
-                  onEdit={handleEdit}
-                  onDelete={(p) => setConfirmDelete(p)}
-                  selectMode={selectMode}
-                  isSelected={selectedIds.has(product.id)}
-                  onToggleSelect={toggleSelect}
-                />
-              </motion.div>
-            ))}
-          </AnimatePresence>
-        </motion.div>
-      )}
+      {/* Profile Card */}
+      <motion.div {...fadeInUp} className="glass-card rounded-3xl overflow-hidden">
+        {/* Banner */}
+        <div className="h-24 bg-linear-to-r from-primary/80 to-[#0B2E2A]/70" />
 
-      {/* Product Form Modal */}
-      <AnimatePresence>
-        {showForm && (
-          <ProductForm
-            initialData={editingProduct}
-            onSave={handleSave}
-            onCancel={() => {
-              setShowForm(false);
-              setEditingProduct(null);
-            }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Delete Confirmation */}
-      <AnimatePresence>
-        {confirmDelete && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          >
-            <div
-              className="absolute inset-0 bg-[#0B2E2A]/30 backdrop-blur-sm"
-              onClick={() => setConfirmDelete(null)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative glass-heavy rounded-3xl p-6 md:p-8 shadow-2xl max-w-sm w-full text-center"
-            >
-              <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-                <AlertCircle className="w-7 h-7 text-red-500" />
+        <div className="p-6 md:p-8">
+          {/* Logo + Name */}
+          <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-14 mb-6">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-2xl border-4 border-white shadow-lg overflow-hidden bg-white flex items-center justify-center">
+                {logoSrc ? (
+                  <img src={logoSrc} alt={vendor.business_name} className="w-full h-full object-cover" />
+                ) : (
+                  <Store className="w-10 h-10 text-[#0B2E2A]/25" />
+                )}
               </div>
-              <h3 className="text-lg font-bold text-[#0B2E2A] mb-1">Delete product?</h3>
-              <p className="text-sm text-[#0B2E2A]/50 mb-6">
-                "{confirmDelete.name}" will be permanently removed from your catalog.
-              </p>
-              <div className="flex gap-3">
+              {editing && (
+                <label className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer shadow-lg hover:bg-primary/90 transition-colors">
+                  {uploadingLogo ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                    disabled={uploadingLogo}
+                  />
+                </label>
+              )}
+            </div>
+
+            <div className="flex-1">
+              {editing ? (
+                <Input
+                  value={form.business_name || ""}
+                  onChange={handleChange("business_name")}
+                  className="text-2xl font-bold font-heading text-[#0B2E2A] h-10"
+                  placeholder="Business name"
+                />
+              ) : (
+                <h2 className="text-2xl font-bold font-heading text-[#0B2E2A]">
+                  {vendor.business_name}
+                </h2>
+              )}
+              <div className="flex items-center gap-2 mt-1">
+                {editing ? (
+                  <Input
+                    value={form.category || ""}
+                    onChange={handleChange("category")}
+                    className="text-xs h-7 max-w-40"
+                    placeholder="Category"
+                  />
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">
+                    <Tag className="w-3 h-3" />
+                    {vendor.category || "General"}
+                  </span>
+                )}
+                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
+                  vendor.status === "active" 
+                    ? "bg-green-100 text-green-600" 
+                    : "bg-amber-100 text-amber-600"
+                }`}>
+                  {vendor.status === "active" ? "Active" : "Pending"}
+                </span>
+              </div>
+            </div>
+
+            {editing && (
+              <div className="flex gap-2">
                 <Button
+                  onClick={() => {
+                    setEditing(false);
+                    setLogoPreview(null);
+                    setForm(vendor);
+                  }}
                   variant="outline"
-                  onClick={() => setConfirmDelete(null)}
-                  className="flex-1 rounded-xl"
-                  disabled={deletingId === confirmDelete.id}
+                  className="rounded-full px-4 h-9"
+                  disabled={saving}
                 >
+                  <X className="w-3.5 h-3.5 mr-1.5" />
                   Cancel
                 </Button>
                 <Button
-                  onClick={() => handleDelete(confirmDelete)}
-                  className="flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-all"
-                  disabled={deletingId === confirmDelete.id}
+                  onClick={handleSave}
+                  className="bg-primary hover:bg-primary/90 text-white rounded-full px-4 h-9 font-semibold"
+                  disabled={saving || uploadingLogo}
                 >
-                  {deletingId === confirmDelete.id ? (
-                    <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-                  ) : null}
-                  Delete
+                  {saving ? (
+                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <Save className="w-3.5 h-3.5 mr-1.5" />
+                  )}
+                  Save
                 </Button>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            )}
+          </div>
 
-      {/* Bulk Edit Bar */}
-      <AnimatePresence>
-        {selectMode && selectedIds.size > 0 && (
-          <BulkEditBar
-            selectedCount={selectedIds.size}
-            onEdit={() => setShowBulkEdit(true)}
-            onClear={clearSelection}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Bulk Edit Modal */}
-      <AnimatePresence>
-        {showBulkEdit && (
-          <BulkEditModal
-            selectedCount={selectedIds.size}
-            onApply={handleBulkApply}
-            onClose={() => setShowBulkEdit(false)}
-          />
-        )}
-      </AnimatePresence>
+          {/* Details Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DetailRow
+              icon={User}
+              label="Owner"
+              editing={editing}
+              value={vendor.owner_name}
+              formValue={form.owner_name}
+              onChange={handleChange("owner_name")}
+              placeholder="Owner name"
+            />
+            <DetailRow
+              icon={Mail}
+              label="Email"
+              editing={false}
+              value={vendor.business_email || user?.email}
+            />
+            <DetailRow
+              icon={Phone}
+              label="Phone"
+              editing={editing}
+              value={vendor.business_phone}
+              formValue={form.business_phone || form.phone}
+              onChange={handleChange("business_phone")}
+              placeholder="Phone number"
+            />
+            <DetailRow
+              icon={MessageCircle}
+              label="WhatsApp"
+              editing={editing}
+              value={vendor.whatsapp_number}
+              formValue={form.whatsapp_number}
+              onChange={handleChange("whatsapp_number")}
+              placeholder="WhatsApp number"
+            />
+            <div className="md:col-span-2">
+              <DetailRow
+                icon={MapPin}
+                label="Address"
+                editing={editing}
+                value={vendor.business_address}
+                formValue={form.business_address || form.address}
+                onChange={handleChange("business_address")}
+                placeholder="Business address"
+              />
+            </div>
+            <DetailRow
+              icon={Smartphone}
+              label="MoMo Number"
+              editing={editing}
+              value={vendor.momo_number}
+              formValue={form.momo_number}
+              onChange={handleChange("momo_number")}
+              placeholder="024XXXXXXX"
+            />
+            <DetailRow
+              icon={CreditCard}
+              label="MoMo Network"
+              editing={editing}
+              value={vendor.momo_network}
+              formValue={form.momo_network}
+              onChange={handleChange("momo_network")}
+              placeholder="MTN / Vodafone / AirtelTigo"
+            />
+          </div>
+        </div>
+      </motion.div>
     </VendorAdminLayout>
   );
 }
