@@ -84,13 +84,12 @@ const AuthenticatedApp = () => {
       
       {/* ✅ Vendor routes - Protected */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
-        <Route path="/vendor/admin" element={<VendorAdmin />} />
-        <Route path="profile" element={<VendorProfilePage />} />
-        <Route path="/vendor/admin/orders" element={<VendorOrders />} />
-        <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
-        <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />
+      <Route path="/vendor/admin" element={<VendorAdmin />} />
+      <Route path="/vendor/admin/orders" element={<VendorOrders />} />
+      <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />
+      <Route path="/vendor/admin/profile" element={<VendorProfilePage />} />  {/* ✅ Add this line */}
+      <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
       </Route>
-      
       {/* 404 page */}
       <Route path="*" element={<PageNotFound />} />
     </Routes>

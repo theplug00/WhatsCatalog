@@ -434,4 +434,5 @@ function DetailRow({ icon: Icon, label, editing, value, formValue, onChange, pla
       </div>
     </div>
   );
+  export default VendorProfilePage;
 }
