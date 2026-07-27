@@ -16,8 +16,10 @@ import VendorRegister from '@/pages/VendorRegister';
 import VendorLanding from '@/pages/VendorLanding';
 import VendorAdmin from '@/pages/VendorAdmin';
 import VendorOrders from '@/pages/VendorOrders';
-import VendorStore from '@/pages/VendorStore';
+import VendorAnalytics from '@/pages/VendorAnalytics';
+import VendorProfilePage from '@/pages/VendorProfilePage';
 import VendorSubscription from '@/pages/VendorSubscription';
+import VendorStore from '@/pages/VendorStore';
 import SuperAdminLayout from '@/components/superadmin/SuperAdminLayout';
 import SuperAdminDashboard from '@/pages/superadmin/SuperAdminDashboard';
 import SuperAdminVendors from '@/pages/superadmin/SuperAdminVendors';
@@ -25,12 +27,11 @@ import SuperAdminOrders from '@/pages/superadmin/SuperAdminOrders';
 import SuperAdminCustomers from '@/pages/superadmin/SuperAdminCustomers';
 import SuperAdminSubscriptions from '@/pages/superadmin/SuperAdminSubscriptions';
 import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { Navigate } from 'react-router-dom';
 import SuperAdminAnalytics from '@/pages/superadmin/SuperAdminAnalytics';
 import SuperAdminNotifications from '@/pages/superadmin/SuperAdminNotifications';
-import VendorAnalytics from '@/pages/VendorAnalytics';
-import VendorProfilePage from '@/pages/VendorProfilePage';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import AdminRoute from '@/components/AdminRoute';
+import { Navigate } from 'react-router-dom';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -38,7 +39,7 @@ const AuthenticatedApp = () => {
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
       </div>
     );
   }
@@ -54,7 +55,9 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      {/* Public routes */}
+      {/* ============================================ */}
+      {/* PUBLIC ROUTES */}
+      {/* ============================================ */}
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -64,11 +67,15 @@ const AuthenticatedApp = () => {
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorRegister />} />
       <Route path="/store/:slug" element={<VendorStore />} />
-      
-      {/* ✅ Super Admin Login - Public */}
+
+      {/* ============================================ */}
+      {/* SUPER ADMIN LOGIN - PUBLIC */}
+      {/* ============================================ */}
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
-      
-      {/* ✅ Super Admin routes - Protected */}
+
+      {/* ============================================ */}
+      {/* SUPER ADMIN ROUTES - PROTECTED */}
+      {/* ============================================ */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/super-admin/login" replace />} />}>
         <Route path="/super-admin" element={<SuperAdminLayout />}>
           <Route index element={<Navigate to="/super-admin/dashboard" replace />} />
@@ -81,21 +88,50 @@ const AuthenticatedApp = () => {
           <Route path="notifications" element={<SuperAdminNotifications />} />
         </Route>
       </Route>
-      
-      {/* ✅ Vendor routes - Protected */}
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
-      <Route path="/vendor/admin" element={<VendorAdmin />} />
-      <Route path="/vendor/admin/orders" element={<VendorOrders />} />
-      <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />
-      <Route path="/vendor/admin/profile" element={<VendorProfilePage />} />  {/* ✅ Add this line */}
-      <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
+
+      {/* ============================================ */}
+      {/* ADMIN ROUTES - PROTECTED (Alternative) */}
+      {/* ============================================ */}
+      <Route 
+        path="/admin" 
+        element={
+          <AdminRoute>
+            <SuperAdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard" element={<SuperAdminDashboard />} />
+        <Route path="vendors" element={<SuperAdminVendors />} />
+        <Route path="orders" element={<SuperAdminOrders />} />
+        <Route path="customers" element={<SuperAdminCustomers />} />
+        <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+        <Route path="analytics" element={<SuperAdminAnalytics />} />
+        <Route path="notifications" element={<SuperAdminNotifications />} />
       </Route>
-      {/* 404 page */}
+
+      {/* ============================================ */}
+      {/* VENDOR ROUTES - PROTECTED */}
+      {/* ============================================ */}
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
+        <Route path="/vendor/admin" element={<VendorAdmin />} />
+        <Route path="/vendor/admin/orders" element={<VendorOrders />} />
+        <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />
+        <Route path="/vendor/admin/profile" element={<VendorProfilePage />} />
+        <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
+      </Route>
+
+      {/* ============================================ */}
+      {/* 404 PAGE */}
+      {/* ============================================ */}
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
 };
 
+// ============================================
+// MAIN APP COMPONENT
+// ============================================
 function App() {
   return (
     <AuthProvider>

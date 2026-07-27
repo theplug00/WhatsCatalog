@@ -157,7 +157,7 @@ export default function VendorAdminLayout({ children }) {
         {/* User & Logout */}
         <div className="p-4 border-t border-[#0B2E2A]/5">
           <div className="flex items-center gap-3 px-2 mb-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
               {initial}
             </div>
             <div className="flex-1 min-w-0">
@@ -253,7 +253,7 @@ export default function VendorAdminLayout({ children }) {
             {/* Mobile User & Logout */}
             <div className="pt-4 border-t border-[#0B2E2A]/5">
               <div className="flex items-center gap-3 px-2 mb-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
                   {initial}
                 </div>
                 <div className="flex-1 min-w-0">
