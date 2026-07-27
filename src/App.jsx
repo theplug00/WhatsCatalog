@@ -16,8 +16,10 @@ import VendorRegister from '@/pages/VendorRegister';
 import VendorLanding from '@/pages/VendorLanding';
 import VendorAdmin from '@/pages/VendorAdmin';
 import VendorOrders from '@/pages/VendorOrders';
-import VendorStore from '@/pages/VendorStore';
+import VendorAnalytics from '@/pages/VendorAnalytics';
+import VendorProfilePage from '@/pages/VendorProfilePage';  // ✅ Add this
 import VendorSubscription from '@/pages/VendorSubscription';
+import StorePage from '@/pages/StorePage';
 import SuperAdminLayout from '@/components/superadmin/SuperAdminLayout';
 import SuperAdminDashboard from '@/pages/superadmin/SuperAdminDashboard';
 import SuperAdminVendors from '@/pages/superadmin/SuperAdminVendors';
@@ -27,10 +29,6 @@ import SuperAdminSubscriptions from '@/pages/superadmin/SuperAdminSubscriptions'
 import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { Navigate } from 'react-router-dom';
-import SuperAdminAnalytics from '@/pages/superadmin/SuperAdminAnalytics';
-import SuperAdminNotifications from '@/pages/superadmin/SuperAdminNotifications';
-import VendorAnalytics from '@/pages/VendorAnalytics';
-import VendorProfilePage from '@/pages/VendorProfilePage';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -38,7 +36,7 @@ const AuthenticatedApp = () => {
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
       </div>
     );
   }
@@ -63,12 +61,12 @@ const AuthenticatedApp = () => {
       <Route path="/vendor" element={<VendorLanding />} />
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorRegister />} />
-      <Route path="/store/:slug" element={<VendorStore />} />
+      <Route path="/store/:slug" element={<StorePage />} />
       
-      {/* ✅ Super Admin Login - Public */}
+      {/* Super Admin Login - Public */}
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
       
-      {/* ✅ Super Admin routes - Protected */}
+      {/* Super Admin routes - Protected */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/super-admin/login" replace />} />}>
         <Route path="/super-admin" element={<SuperAdminLayout />}>
           <Route index element={<Navigate to="/super-admin/dashboard" replace />} />
@@ -77,19 +75,18 @@ const AuthenticatedApp = () => {
           <Route path="orders" element={<SuperAdminOrders />} />
           <Route path="customers" element={<SuperAdminCustomers />} />
           <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
-          <Route path="analytics" element={<SuperAdminAnalytics />} />
-          <Route path="notifications" element={<SuperAdminNotifications />} />
         </Route>
       </Route>
       
-      {/* ✅ Vendor routes - Protected */}
+      {/* Vendor routes - Protected */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
-      <Route path="/vendor/admin" element={<VendorAdmin />} />
-      <Route path="/vendor/admin/orders" element={<VendorOrders />} />
-      <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />
-      <Route path="/vendor/admin/profile" element={<VendorProfilePage />} />  {/* ✅ Add this line */}
-      <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
+        <Route path="/vendor/admin" element={<VendorAdmin />} />
+        <Route path="/vendor/admin/orders" element={<VendorOrders />} />
+        <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />
+        <Route path="/vendor/admin/profile" element={<VendorProfilePage />} />  {/* ✅ Add this */}
+        <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
       </Route>
+      
       {/* 404 page */}
       <Route path="*" element={<PageNotFound />} />
     </Routes>

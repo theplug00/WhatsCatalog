@@ -22,7 +22,7 @@ const fadeInUp = {
 function DetailRow({ icon: Icon, label, editing, value, formValue, onChange, placeholder }) {
   return (
     <div className="flex items-center gap-3 rounded-xl bg-white/40 border border-white/30 px-3 py-2.5">
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
         <Icon className="w-3.5 h-3.5 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
@@ -245,7 +245,7 @@ function VendorProfilePage() {
 
       {error && (
         <div className="mb-6 p-3 rounded-xl bg-red-50 text-red-600 text-sm flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
           <button onClick={() => setError("")} className="ml-auto text-sm font-semibold hover:underline">
             Dismiss
@@ -254,7 +254,7 @@ function VendorProfilePage() {
       )}
 
       <div className="glass-card rounded-3xl overflow-hidden">
-        <div className="h-24 bg-gradient-to-r from-primary/80 to-[#0B2E2A]/70" />
+        <div className="h-24 bg-linear-to-r from-primary/80 to-[#0B2E2A]/70" />
 
         <div className="p-6 md:p-8">
           <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-14 mb-6">
@@ -302,7 +302,7 @@ function VendorProfilePage() {
                   <Input
                     value={form.category || ""}
                     onChange={handleChange("category")}
-                    className="text-xs h-7 max-w-[160px]"
+                    className="text-xs h-7 max-w-40"
                     placeholder="Category"
                   />
                 ) : (
@@ -425,4 +425,4 @@ function VendorProfilePage() {
   );
 }
 
-export default VendorProfilePage;
+export default VendorProfilePage;git
