@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { 
   Store, Mail, Phone, MessageCircle, MapPin, 
   Tag, Pencil, Loader2, Upload, Check, User,
-  Smartphone, CreditCard, Globe, Save, X,
+  Smartphone, CreditCard, Save, X,
   AlertCircle
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
@@ -11,19 +11,42 @@ import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/components/ui/use-toast";
 
-// ============================================
-// ANIMATION VARIANTS
-// ============================================
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.4 }
 };
 
-export default function VendorProfilePage() {
+function DetailRow({ icon: Icon, label, editing, value, formValue, onChange, placeholder }) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl bg-white/40 border border-white/30 px-3 py-2.5">
+      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+        <Icon className="w-3.5 h-3.5 text-primary" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[11px] font-semibold text-[#0B2E2A]/40 uppercase tracking-wide">
+          {label}
+        </p>
+        {editing ? (
+          <Input
+            value={formValue || ""}
+            onChange={onChange}
+            placeholder={placeholder}
+            className="h-7 text-sm mt-0.5 p-0 border-0 bg-transparent focus-visible:ring-0"
+          />
+        ) : (
+          <p className="text-sm font-medium text-[#0B2E2A] truncate">
+            {value || "—"}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VendorProfilePage() {
   const [vendor, setVendor] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +98,6 @@ export default function VendorProfilePage() {
     loadVendorProfile();
   }, []);
 
-  // ✅ Upload logo to Supabase Storage
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -118,25 +140,26 @@ export default function VendorProfilePage() {
     }
   };
 
-  // ✅ Save vendor profile
   const handleSave = async () => {
     setSaving(true);
     setError("");
     try {
+      const updates = {
+        business_name: form.business_name || "",
+        owner_name: form.owner_name || "",
+        business_phone: form.business_phone || form.phone || "",
+        whatsapp_number: form.whatsapp_number || "",
+        category: form.category || "",
+        business_address: form.business_address || form.address || "",
+        logo_url: form.logo_url || "",
+        momo_number: form.momo_number || "",
+        momo_network: form.momo_network || "",
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error } = await supabase
         .from('vendors')
-        .update({
-          business_name: form.business_name,
-          owner_name: form.owner_name,
-          business_phone: form.business_phone || form.phone,
-          whatsapp_number: form.whatsapp_number,
-          category: form.category,
-          business_address: form.business_address || form.address,
-          logo_url: form.logo_url,
-          momo_number: form.momo_number,
-          momo_network: form.momo_network,
-          updated_at: new Date().toISOString()
-        })
+        .update(updates)
         .eq('id', vendor.id)
         .select()
         .single();
@@ -195,8 +218,7 @@ export default function VendorProfilePage() {
 
   return (
     <VendorAdminLayout>
-      {/* Header */}
-      <motion.div {...fadeInUp} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold font-heading text-[#0B2E2A] flex items-center gap-3">
             <User className="w-8 h-8 text-primary" />
@@ -219,27 +241,22 @@ export default function VendorProfilePage() {
             Edit Profile
           </Button>
         )}
-      </motion.div>
+      </div>
 
-      {/* Error */}
       {error && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-3 rounded-xl bg-red-50 text-red-600 text-sm flex items-center gap-2"
-        >
-          <AlertCircle className="w-4 h-4 shrink-0" />
+        <div className="mb-6 p-3 rounded-xl bg-red-50 text-red-600 text-sm flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
           {error}
-        </motion.div>
+          <button onClick={() => setError("")} className="ml-auto text-sm font-semibold hover:underline">
+            Dismiss
+          </button>
+        </div>
       )}
 
-      {/* Profile Card */}
-      <motion.div {...fadeInUp} className="glass-card rounded-3xl overflow-hidden">
-        {/* Banner */}
-        <div className="h-24 bg-linear-to-r from-primary/80 to-[#0B2E2A]/70" />
+      <div className="glass-card rounded-3xl overflow-hidden">
+        <div className="h-24 bg-gradient-to-r from-primary/80 to-[#0B2E2A]/70" />
 
         <div className="p-6 md:p-8">
-          {/* Logo + Name */}
           <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-14 mb-6">
             <div className="relative">
               <div className="w-24 h-24 rounded-2xl border-4 border-white shadow-lg overflow-hidden bg-white flex items-center justify-center">
@@ -285,7 +302,7 @@ export default function VendorProfilePage() {
                   <Input
                     value={form.category || ""}
                     onChange={handleChange("category")}
-                    className="text-xs h-7 max-w-40"
+                    className="text-xs h-7 max-w-[160px]"
                     placeholder="Category"
                   />
                 ) : (
@@ -299,7 +316,7 @@ export default function VendorProfilePage() {
                     ? "bg-green-100 text-green-600" 
                     : "bg-amber-100 text-amber-600"
                 }`}>
-                  {vendor.status === "active" ? "✅ Active" : "⏳ Pending"}
+                  {vendor.status === "active" ? "Active" : "Pending"}
                 </span>
               </div>
             </div>
@@ -335,7 +352,6 @@ export default function VendorProfilePage() {
             )}
           </div>
 
-          {/* Details Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DetailRow
               icon={User}
@@ -351,6 +367,9 @@ export default function VendorProfilePage() {
               label="Email"
               editing={false}
               value={vendor.business_email || user?.email}
+              formValue=""
+              onChange={() => {}}
+              placeholder=""
             />
             <DetailRow
               icon={Phone}
@@ -401,38 +420,9 @@ export default function VendorProfilePage() {
             />
           </div>
         </div>
-      </motion.div>
+      </div>
     </VendorAdminLayout>
   );
 }
 
-// ============================================
-// DETAIL ROW COMPONENT
-// ============================================
-function DetailRow({ icon: Icon, label, editing, value, formValue, onChange, placeholder }) {
-  return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/40 border border-white/30 px-3 py-2.5">
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-        <Icon className="w-3.5 h-3.5 text-primary" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-[#0B2E2A]/40 uppercase tracking-wide">
-          {label}
-        </p>
-        {editing ? (
-          <Input
-            value={formValue || ""}
-            onChange={onChange}
-            placeholder={placeholder}
-            className="h-7 text-sm mt-0.5 p-0 border-0 bg-transparent focus-visible:ring-0"
-          />
-        ) : (
-          <p className="text-sm font-medium text-[#0B2E2A] truncate">
-            {value || "—"}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-  export default VendorProfilePage;
-}
+export default VendorProfilePage;

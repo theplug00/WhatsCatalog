@@ -139,7 +139,7 @@ export default function VendorAdminLayout({ children }) {
 
         <div className="p-4 border-t border-white/30">
           <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-9 h-9 rounded-full bg-linear-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
               {initial}
             </div>
             <div className="flex-1 min-w-0">
