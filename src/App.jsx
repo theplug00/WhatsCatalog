@@ -17,9 +17,9 @@ import VendorLanding from '@/pages/VendorLanding';
 import VendorAdmin from '@/pages/VendorAdmin';
 import VendorOrders from '@/pages/VendorOrders';
 import VendorAnalytics from '@/pages/VendorAnalytics';
-import VendorProfilePage from '@/pages/VendorProfilePage';  // ✅ Add this
+import VendorProfilePage from '@/pages/VendorProfilePage';
 import VendorSubscription from '@/pages/VendorSubscription';
-import StorePage from '@/pages/StorePage';
+import VendorStore from '@/pages/VendorStore';  // ✅ Changed from StorePage
 import SuperAdminLayout from '@/components/superadmin/SuperAdminLayout';
 import SuperAdminDashboard from '@/pages/superadmin/SuperAdminDashboard';
 import SuperAdminVendors from '@/pages/superadmin/SuperAdminVendors';
@@ -61,7 +61,7 @@ const AuthenticatedApp = () => {
       <Route path="/vendor" element={<VendorLanding />} />
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorRegister />} />
-      <Route path="/store/:slug" element={<StorePage />} />
+      <Route path="/store/:slug" element={<VendorStore />} />  {/* ✅ Updated */}
       
       {/* Super Admin Login - Public */}
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
@@ -83,7 +83,7 @@ const AuthenticatedApp = () => {
         <Route path="/vendor/admin" element={<VendorAdmin />} />
         <Route path="/vendor/admin/orders" element={<VendorOrders />} />
         <Route path="/vendor/admin/analytics" element={<VendorAnalytics />} />
-        <Route path="/vendor/admin/profile" element={<VendorProfilePage />} />  {/* ✅ Add this */}
+        <Route path="/vendor/admin/profile" element={<VendorProfilePage />} />
         <Route path="/vendor/admin/subscription" element={<VendorSubscription />} />
       </Route>
       
