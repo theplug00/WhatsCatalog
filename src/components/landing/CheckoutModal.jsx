@@ -167,6 +167,18 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
     const whatsappUrl = `https://wa.me/${vendorWhatsApp}?text=${message}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
+  // In sendWhatsAppMessage function
+const trackingLink = `${window.location.origin}/track-order/${order.id}`;
+
+const message = 
+  `🛍️ *New Order Received!*%0A%0A` +
+  `*Customer:* ${order.customer_name}%0A` +
+  `*Phone:* ${order.customer_phone}%0A` +
+  `*Product:* ${order.product_name}%0A` +
+  `*Total:* GH₵${order.total_price.toFixed(2)}%0A` +
+  `*Delivery Address:* ${order.delivery_address || 'Not specified'}%0A%0A` +
+  `🔗 *Track Order:* ${trackingLink}%0A%0A` +
+  `_Please contact the customer to confirm payment and delivery._`;
 
   // If no product, return null
   if (!product) return null;

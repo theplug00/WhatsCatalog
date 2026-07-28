@@ -32,6 +32,7 @@ import SuperAdminNotifications from '@/pages/superadmin/SuperAdminNotifications'
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminRoute from '@/components/AdminRoute';
 import { Navigate } from 'react-router-dom';
+import TrackOrder from '@/pages/TrackOrder';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -67,6 +68,7 @@ const AuthenticatedApp = () => {
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorRegister />} />
       <Route path="/store/:slug" element={<VendorStore />} />
+      <Route path="/track-order/:orderId" element={<TrackOrder />} />
 
       {/* ============================================ */}
       {/* SUPER ADMIN LOGIN - PUBLIC */}
