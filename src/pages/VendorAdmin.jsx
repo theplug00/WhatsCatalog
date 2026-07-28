@@ -9,7 +9,8 @@ import {
   Star, Award, Truck, CreditCard,
   MessageCircle, Phone, MapPin, User,
   BarChart3, PieChart, LineChart,
-  Loader2, ChevronRight, ChevronDown
+  Loader2, ChevronRight, ChevronDown,
+  Activity  // ✅ Added
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
@@ -125,7 +126,6 @@ export default function VendorDashboard() {
   const loadDashboardData = async () => {
     setLoading(true);
     try {
-      // Get vendor
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast({ title: "Please login", variant: "destructive" });
@@ -144,7 +144,6 @@ export default function VendorDashboard() {
       }
       setVendor(vendorData);
 
-      // Get products
       const { data: productData } = await supabase
         .from('products')
         .select('*')
@@ -152,7 +151,6 @@ export default function VendorDashboard() {
 
       setProducts(productData || []);
 
-      // Get orders
       const { data: orderData } = await supabase
         .from('orders')
         .select('*')
@@ -161,7 +159,6 @@ export default function VendorDashboard() {
 
       setOrders(orderData || []);
 
-      // Calculate stats
       const totalRevenue = orderData?.reduce((sum, o) => sum + (o.total_price || 0), 0) || 0;
       const totalOrders = orderData?.length || 0;
       const totalProducts = productData?.length || 0;
@@ -170,10 +167,8 @@ export default function VendorDashboard() {
       const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
       const totalCustomers = new Set(orderData?.map(o => o.customer_phone)).size || 0;
 
-      // Generate recent activities
       const activities = [];
       
-      // New orders
       orderData?.slice(0, 3).forEach(o => {
         activities.push({
           type: 'order',
@@ -183,7 +178,6 @@ export default function VendorDashboard() {
         });
       });
 
-      // Low stock alerts
       productData?.filter(p => (p.stock || 0) <= 5 && (p.stock || 0) > 0).slice(0, 2).forEach(p => {
         activities.push({
           type: 'product',
