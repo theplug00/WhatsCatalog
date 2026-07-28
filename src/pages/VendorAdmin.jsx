@@ -10,14 +10,14 @@ import {
   MessageCircle, Phone, MapPin, User,
   BarChart3, PieChart, LineChart,
   Loader2, ChevronRight, ChevronDown,
-  Activity,
-  Store 
+  Activity, Store
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
+import ProductForm from "@/components/vendor/ProductForm";
 
 // ============================================
 // STAT CARD COMPONENT
@@ -108,6 +108,8 @@ export default function VendorDashboard() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("week");
   const [recentActivities, setRecentActivities] = useState([]);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const [stats, setStats] = useState({
     totalRevenue: 0,
     totalOrders: 0,
@@ -124,6 +126,9 @@ export default function VendorDashboard() {
     loadDashboardData();
   }, [timeRange]);
 
+  // ============================================
+  // LOAD DASHBOARD DATA
+  // ============================================
   const loadDashboardData = async () => {
     setLoading(true);
     try {
@@ -160,6 +165,7 @@ export default function VendorDashboard() {
 
       setOrders(orderData || []);
 
+      // Calculate stats
       const totalRevenue = orderData?.reduce((sum, o) => sum + (o.total_price || 0), 0) || 0;
       const totalOrders = orderData?.length || 0;
       const totalProducts = productData?.length || 0;
@@ -168,6 +174,7 @@ export default function VendorDashboard() {
       const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
       const totalCustomers = new Set(orderData?.map(o => o.customer_phone)).size || 0;
 
+      // Generate activities
       const activities = [];
       
       orderData?.slice(0, 3).forEach(o => {
@@ -210,6 +217,44 @@ export default function VendorDashboard() {
     }
   };
 
+  // ============================================
+  // SAVE PRODUCT
+  // ============================================
+  const handleSaveProduct = async (data) => {
+    try {
+      const productData = {
+        ...data,
+        vendor_id: vendor?.id,
+        created_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('products')
+        .insert([productData]);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Product added",
+        description: `${data.name} has been added to your catalog.`,
+        duration: 3000,
+      });
+      
+      setShowProductForm(false);
+      loadDashboardData();
+    } catch (error) {
+      console.error('Error adding product:', error);
+      toast({
+        title: "Failed to add product",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
+  // ============================================
+  // LOADING STATE
+  // ============================================
   if (loading) {
     return (
       <VendorAdminLayout>
@@ -220,6 +265,9 @@ export default function VendorDashboard() {
     );
   }
 
+  // ============================================
+  // MAIN RENDER
+  // ============================================
   return (
     <VendorAdminLayout>
       {/* Header */}
@@ -399,33 +447,76 @@ export default function VendorDashboard() {
       </div>
 
       {/* Quick Actions */}
-<div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
-  {[
-    { label: "Add Product", icon: Plus, href: "/vendor/admin", color: "bg-primary text-white" },
-    { label: "View Orders", icon: ShoppingBag, href: "/vendor/admin/orders", color: "bg-blue-500 text-white" },
-    { label: "View My Store", icon: Store, href: `/store/${vendor?.slug}`, color: "bg-emerald-500 text-white" },
-    { label: "View Analytics", icon: BarChart3, href: "/vendor/admin/analytics", color: "bg-purple-500 text-white" },
-    { label: "Manage Profile", icon: User, href: "/vendor/admin/profile", color: "bg-amber-500 text-white" },
-  ].map((action, i) => (
-    <motion.button
-      key={i}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.3 + i * 0.05 }}
-      onClick={() => {
-        if (action.href.startsWith('http') || action.href.startsWith('/store')) {
-          window.open(action.href, '_blank');
-        } else {
-          window.location.href = action.href;
-        }
-      }}
-      className={`${action.color} rounded-xl p-4 text-center hover:scale-105 transition-transform shadow-lg`}
-    >
-      <action.icon className="w-6 h-6 mx-auto mb-1" />
-      <p className="text-xs font-semibold">{action.label}</p>
-    </motion.button>
-  ))}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
+        {[
+          { 
+            label: "Add Product", 
+            icon: Plus, 
+            action: () => setShowProductForm(true),
+            color: "bg-primary text-white" 
+          },
+          { 
+            label: "View Orders", 
+            icon: ShoppingBag, 
+            href: "/vendor/admin/orders", 
+            color: "bg-blue-500 text-white" 
+          },
+          { 
+            label: "View My Store", 
+            icon: Store, 
+            href: `/store/${vendor?.slug}`, 
+            color: "bg-emerald-500 text-white" 
+          },
+          { 
+            label: "View Analytics", 
+            icon: BarChart3, 
+            href: "/vendor/admin/analytics", 
+            color: "bg-purple-500 text-white" 
+          },
+          { 
+            label: "Manage Profile", 
+            icon: User, 
+            href: "/vendor/admin/profile", 
+            color: "bg-amber-500 text-white" 
+          },
+        ].map((action, i) => (
+          <motion.button
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + i * 0.05 }}
+            onClick={() => {
+              if (action.action) {
+                action.action();
+              } else if (action.href?.startsWith('/store')) {
+                window.open(action.href, '_blank');
+              } else if (action.href) {
+                window.location.href = action.href;
+              }
+            }}
+            className={`${action.color} rounded-xl p-4 text-center hover:scale-105 transition-transform shadow-lg`}
+          >
+            <action.icon className="w-6 h-6 mx-auto mb-1" />
+            <p className="text-xs font-semibold">{action.label}</p>
+          </motion.button>
+        ))}
       </div>
+
+      {/* ============================================ */}
+      {/* PRODUCT FORM MODAL */}
+      {/* ============================================ */}
+      <AnimatePresence>
+        {showProductForm && (
+          <ProductForm
+            initialData={editingProduct}
+            onSave={handleSaveProduct}
+            onCancel={() => {
+              setShowProductForm(false);
+              setEditingProduct(null);
+            }}
+          />
+        )}
+      </AnimatePresence>
     </VendorAdminLayout>
   );
 }
