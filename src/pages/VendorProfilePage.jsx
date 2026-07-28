@@ -425,4 +425,5 @@ function VendorProfilePage() {
   );
 }
 
-export default VendorProfilePage;git
+// ✅ FIXED: CORRECT EXPORT
+export default VendorProfilePage;
