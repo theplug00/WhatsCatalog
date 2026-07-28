@@ -10,7 +10,8 @@ import {
   MessageCircle, Phone, MapPin, User,
   BarChart3, PieChart, LineChart,
   Loader2, ChevronRight, ChevronDown,
-  Activity  // ✅ Added
+  Activity,
+  Store 
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
@@ -398,25 +399,32 @@ export default function VendorDashboard() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-        {[
-          { label: "Add Product", icon: Plus, href: "#", color: "bg-primary text-white" },
-          { label: "View Orders", icon: ShoppingBag, href: "/vendor/admin/orders", color: "bg-blue-500 text-white" },
-          { label: "View Analytics", icon: BarChart3, href: "/vendor/admin/analytics", color: "bg-purple-500 text-white" },
-          { label: "Manage Profile", icon: User, href: "/vendor/admin/profile", color: "bg-amber-500 text-white" },
-        ].map((action, i) => (
-          <motion.button
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 + i * 0.05 }}
-            onClick={() => window.location.href = action.href}
-            className={`${action.color} rounded-xl p-4 text-center hover:scale-105 transition-transform shadow-lg`}
-          >
-            <action.icon className="w-6 h-6 mx-auto mb-1" />
-            <p className="text-xs font-semibold">{action.label}</p>
-          </motion.button>
-        ))}
+<div className="grid grid-cols-2 md:grid-cols-5 gap-3 mt-6">
+  {[
+    { label: "Add Product", icon: Plus, href: "/vendor/admin", color: "bg-primary text-white" },
+    { label: "View Orders", icon: ShoppingBag, href: "/vendor/admin/orders", color: "bg-blue-500 text-white" },
+    { label: "View My Store", icon: Store, href: `/store/${vendor?.slug}`, color: "bg-emerald-500 text-white" },
+    { label: "View Analytics", icon: BarChart3, href: "/vendor/admin/analytics", color: "bg-purple-500 text-white" },
+    { label: "Manage Profile", icon: User, href: "/vendor/admin/profile", color: "bg-amber-500 text-white" },
+  ].map((action, i) => (
+    <motion.button
+      key={i}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3 + i * 0.05 }}
+      onClick={() => {
+        if (action.href.startsWith('http') || action.href.startsWith('/store')) {
+          window.open(action.href, '_blank');
+        } else {
+          window.location.href = action.href;
+        }
+      }}
+      className={`${action.color} rounded-xl p-4 text-center hover:scale-105 transition-transform shadow-lg`}
+    >
+      <action.icon className="w-6 h-6 mx-auto mb-1" />
+      <p className="text-xs font-semibold">{action.label}</p>
+    </motion.button>
+  ))}
       </div>
     </VendorAdminLayout>
   );
