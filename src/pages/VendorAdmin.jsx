@@ -1,53 +1,97 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Store, Mail, Phone, MessageCircle, MapPin, 
-  Tag, Pencil, Loader2, Upload, Check, User,
-  Smartphone, CreditCard, Save, X,
-  AlertCircle
+  ShoppingBag, Package, Users, DollarSign, 
+  TrendingUp, TrendingDown, Eye, Clock, 
+  CheckCircle, XCircle, AlertCircle, 
+  ArrowUp, ArrowDown, Calendar, Download,
+  RefreshCw, Filter, Search, Plus,
+  Star, Award, Truck, CreditCard,
+  MessageCircle, Phone, MapPin, User,
+  BarChart3, PieChart, LineChart,
+  Loader2, ChevronRight, ChevronDown
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 
 // ============================================
-// ANIMATION VARIANTS
+// STAT CARD COMPONENT
 // ============================================
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4 }
-};
+function StatCard({ icon: Icon, label, value, change, color, subtitle, delay }) {
+  const isPositive = change >= 0;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className="bg-white rounded-2xl p-5 shadow-sm border border-[#0B2E2A]/5 hover:shadow-md transition-shadow"
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs font-semibold text-[#0B2E2A]/50 uppercase tracking-wide">
+            {label}
+          </p>
+          <p className="text-2xl font-extrabold text-[#0B2E2A] mt-1">
+            {value}
+          </p>
+          {subtitle && (
+            <p className="text-xs text-[#0B2E2A]/40 mt-0.5">{subtitle}</p>
+          )}
+        </div>
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center ${color}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+      {change !== undefined && (
+        <div className="flex items-center gap-1 mt-3">
+          <span className={`text-xs font-semibold flex items-center gap-0.5 ${
+            isPositive ? 'text-emerald-500' : 'text-red-500'
+          }`}>
+            {isPositive ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+            {Math.abs(change)}%
+          </span>
+          <span className="text-xs text-[#0B2E2A]/40">vs last period</span>
+        </div>
+      )}
+    </motion.div>
+  );
+}
 
 // ============================================
-// DETAIL ROW COMPONENT
+// ACTIVITY ITEM COMPONENT
 // ============================================
-function DetailRow({ icon: Icon, label, editing, value, formValue, onChange, placeholder }) {
+function ActivityItem({ activity }) {
+  const icons = {
+    order: ShoppingBag,
+    product: Package,
+    customer: User,
+    review: Star,
+    payment: CreditCard,
+  };
+  const Icon = icons[activity.type] || ShoppingBag;
+  
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-white/40 border border-white/30 px-3 py-2.5">
-      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-        <Icon className="w-3.5 h-3.5 text-primary" />
+    <div className="flex items-center gap-3 py-2 border-b border-[#0B2E2A]/5 last:border-0">
+      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center">
+        <Icon className="w-4 h-4 text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] font-semibold text-[#0B2E2A]/40 uppercase tracking-wide">
-          {label}
-        </p>
-        {editing ? (
-          <Input
-            value={formValue || ""}
-            onChange={onChange}
-            placeholder={placeholder}
-            className="h-7 text-sm mt-0.5 p-0 border-0 bg-transparent focus-visible:ring-0"
-          />
-        ) : (
-          <p className="text-sm font-medium text-[#0B2E2A] truncate">
-            {value || "—"}
-          </p>
-        )}
+        <p className="text-sm font-medium text-[#0B2E2A]">{activity.title}</p>
+        <p className="text-xs text-[#0B2E2A]/50">{activity.time}</p>
       </div>
+      {activity.status && (
+        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+          activity.status === 'success' ? 'bg-emerald-100 text-emerald-600' :
+          activity.status === 'pending' ? 'bg-amber-100 text-amber-600' :
+          'bg-red-100 text-red-600'
+        }`}>
+          {activity.status}
+        </span>
+      )}
     </div>
   );
 }
@@ -55,390 +99,331 @@ function DetailRow({ icon: Icon, label, editing, value, formValue, onChange, pla
 // ============================================
 // MAIN COMPONENT
 // ============================================
-export default function VendorProfilePage() {
+export default function VendorDashboard() {
   const [vendor, setVendor] = useState(null);
-  const [user, setUser] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [form, setForm] = useState({});
-  const [logoPreview, setLogoPreview] = useState(null);
-  const [error, setError] = useState("");
+  const [timeRange, setTimeRange] = useState("week");
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [stats, setStats] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    totalCustomers: 0,
+    conversionRate: 0,
+    averageOrderValue: 0,
+    growthRate: 0,
+    pendingOrders: 0,
+    lowStockItems: 0,
+  });
 
   useEffect(() => {
-    const loadVendorProfile = async () => {
-      setLoading(true);
-      setError("");
-      try {
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError) throw userError;
-        if (!user) {
-          setError('Please login to view your profile.');
-          setLoading(false);
-          return;
-        }
+    loadDashboardData();
+  }, [timeRange]);
 
-        setUser(user);
-
-        const { data: vendorData, error: vendorError } = await supabase
-          .from('vendors')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (vendorError) {
-          console.warn('Vendor profile not found:', vendorError);
-          setError('Vendor profile not found.');
-          setLoading(false);
-          return;
-        }
-
-        setVendor(vendorData);
-        setForm(vendorData);
-      } catch (err) {
-        console.error('Error loading vendor profile:', err);
-        setError('Failed to load vendor profile');
-      } finally {
-        setLoading(false);
+  const loadDashboardData = async () => {
+    setLoading(true);
+    try {
+      // Get vendor
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({ title: "Please login", variant: "destructive" });
+        return;
       }
-    };
 
-    loadVendorProfile();
-  }, []);
-
-  // Upload logo
-  const handleLogoUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image must be under 5MB");
-      return;
-    }
-
-    setUploadingLogo(true);
-    setError("");
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
-      const filePath = `vendor-logos/${fileName}`;
-
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('vendor-logos')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('vendor-logos')
-        .getPublicUrl(filePath);
-
-      setLogoPreview(publicUrl);
-      setForm((prev) => ({ ...prev, logo_url: publicUrl }));
-      
-      toast({
-        title: "Logo uploaded",
-        description: "Your logo has been uploaded successfully.",
-        duration: 3000,
-      });
-    } catch (err) {
-      console.error('Upload error:', err);
-      setError('Failed to upload logo. Please try again.');
-    } finally {
-      setUploadingLogo(false);
-    }
-  };
-
-  // Save profile
-  const handleSave = async () => {
-    setSaving(true);
-    setError("");
-    try {
-      const updates = {
-        business_name: form.business_name,
-        owner_name: form.owner_name,
-        business_phone: form.business_phone || form.phone || "",
-        whatsapp_number: form.whatsapp_number || "",
-        category: form.category || "",
-        business_address: form.business_address || form.address || "",
-        logo_url: form.logo_url || "",
-        momo_number: form.momo_number || "",
-        momo_network: form.momo_network || "",
-        updated_at: new Date().toISOString()
-      };
-
-      const { data, error } = await supabase
+      const { data: vendorData } = await supabase
         .from('vendors')
-        .update(updates)
-        .eq('id', vendor.id)
-        .select()
+        .select('*')
+        .eq('id', user.id)
         .single();
 
-      if (error) throw error;
+      if (!vendorData) {
+        toast({ title: "Vendor not found", variant: "destructive" });
+        return;
+      }
+      setVendor(vendorData);
 
-      setVendor(data);
-      setForm(data);
-      setEditing(false);
-      setLogoPreview(null);
+      // Get products
+      const { data: productData } = await supabase
+        .from('products')
+        .select('*')
+        .eq('vendor_id', vendorData.id);
+
+      setProducts(productData || []);
+
+      // Get orders
+      const { data: orderData } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('vendor_id', vendorData.id)
+        .order('created_date', { ascending: false });
+
+      setOrders(orderData || []);
+
+      // Calculate stats
+      const totalRevenue = orderData?.reduce((sum, o) => sum + (o.total_price || 0), 0) || 0;
+      const totalOrders = orderData?.length || 0;
+      const totalProducts = productData?.length || 0;
+      const pendingOrders = orderData?.filter(o => o.status === 'new' || o.status === 'confirmed').length || 0;
+      const lowStockItems = productData?.filter(p => (p.stock || 0) <= 5 && (p.stock || 0) > 0).length || 0;
+      const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+      const totalCustomers = new Set(orderData?.map(o => o.customer_phone)).size || 0;
+
+      // Generate recent activities
+      const activities = [];
       
-      toast({
-        title: "Profile updated",
-        description: "Your vendor profile has been updated successfully.",
-        duration: 3000,
+      // New orders
+      orderData?.slice(0, 3).forEach(o => {
+        activities.push({
+          type: 'order',
+          title: `New order from ${o.customer_name}`,
+          time: new Date(o.created_date).toLocaleDateString(),
+          status: 'pending'
+        });
       });
-    } catch (err) {
-      console.error('Save error:', err);
-      setError('Failed to save profile. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
 
-  const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+      // Low stock alerts
+      productData?.filter(p => (p.stock || 0) <= 5 && (p.stock || 0) > 0).slice(0, 2).forEach(p => {
+        activities.push({
+          type: 'product',
+          title: `Low stock: ${p.name} (${p.stock} left)`,
+          time: 'Just now',
+          status: 'pending'
+        });
+      });
+
+      setStats({
+        totalRevenue,
+        totalOrders,
+        totalProducts,
+        totalCustomers,
+        conversionRate: totalOrders > 0 ? (totalOrders / (totalOrders + 50)) * 100 : 0,
+        averageOrderValue,
+        growthRate: 12,
+        pendingOrders,
+        lowStockItems,
+      });
+
+      setRecentActivities(activities.slice(0, 5));
+
+    } catch (error) {
+      console.error('Error loading dashboard:', error);
+      toast({ title: "Failed to load dashboard", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
     return (
       <VendorAdminLayout>
-        <div className="flex items-center justify-center py-24">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
         </div>
       </VendorAdminLayout>
     );
   }
-
-  if (error || !vendor) {
-    return (
-      <VendorAdminLayout>
-        <div className="glass-card rounded-3xl p-6 text-center">
-          <Store className="w-10 h-10 text-[#0B2E2A]/20 mx-auto mb-3" />
-          <p className="text-sm font-semibold text-[#0B2E2A]">
-            {error || "No vendor profile found"}
-          </p>
-          <p className="text-xs text-[#0B2E2A]/50 mt-1">
-            Your profile will appear here once your vendor account is set up.
-          </p>
-        </div>
-      </VendorAdminLayout>
-    );
-  }
-
-  const logoSrc = editing ? (logoPreview || form.logo_url) : vendor.logo_url;
 
   return (
     <VendorAdminLayout>
       {/* Header */}
-      <motion.div {...fadeInUp} className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl md:text-3xl font-extrabold font-heading text-[#0B2E2A] flex items-center gap-3">
-            <User className="w-8 h-8 text-primary" />
-            Profile
+            <BarChart3 className="w-8 h-8 text-primary" />
+            Dashboard
           </h1>
           <p className="text-sm text-[#0B2E2A]/50 mt-1">
-            Manage your vendor account details
+            Welcome back, {vendor?.business_name || 'Vendor'}! Here's your store overview.
           </p>
         </div>
-        {!editing && (
+        <div className="flex items-center gap-3">
+          <div className="flex gap-1 p-1 bg-white rounded-xl border border-[#0B2E2A]/10">
+            {['week', 'month', 'year'].map((range) => (
+              <button
+                key={range}
+                onClick={() => setTimeRange(range)}
+                className={`px-4 py-1.5 rounded-lg text-sm font-semibold capitalize transition-all ${
+                  timeRange === range
+                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                    : 'text-[#0B2E2A]/60 hover:text-primary'
+                }`}
+              >
+                {range}
+              </button>
+            ))}
+          </div>
           <Button
-            onClick={() => {
-              setForm(vendor);
-              setLogoPreview(null);
-              setEditing(true);
-            }}
-            className="bg-primary hover:bg-primary/90 text-white rounded-full px-5 font-semibold"
+            onClick={loadDashboardData}
+            variant="outline"
+            className="rounded-full px-4"
           >
-            <Pencil className="w-4 h-4 mr-1.5" />
-            Edit Profile
+            <RefreshCw className="w-4 h-4 mr-1.5" />
+            Refresh
           </Button>
-        )}
-      </motion.div>
+        </div>
+      </div>
 
-      {/* Error */}
-      {error && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-6 p-3 rounded-xl bg-red-50 text-red-600 text-sm flex items-center gap-2"
-        >
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          {error}
-          <button onClick={() => setError("")} className="ml-auto text-sm font-semibold hover:underline">
-            Dismiss
-          </button>
-        </motion.div>
-      )}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          icon={DollarSign}
+          label="Revenue"
+          value={`GH₵${stats.totalRevenue.toFixed(2)}`}
+          change={stats.growthRate}
+          color="bg-emerald-100 text-emerald-600"
+          delay={0}
+        />
+        <StatCard
+          icon={ShoppingBag}
+          label="Orders"
+          value={stats.totalOrders}
+          change={8}
+          color="bg-blue-100 text-blue-600"
+          delay={0.05}
+          subtitle={`${stats.pendingOrders} pending`}
+        />
+        <StatCard
+          icon={Package}
+          label="Products"
+          value={stats.totalProducts}
+          change={-2}
+          color="bg-purple-100 text-purple-600"
+          delay={0.1}
+          subtitle={`${stats.lowStockItems} low stock`}
+        />
+        <StatCard
+          icon={Users}
+          label="Customers"
+          value={stats.totalCustomers}
+          change={15}
+          color="bg-amber-100 text-amber-600"
+          delay={0.15}
+        />
+      </div>
 
-      {/* Profile Card */}
-      <motion.div {...fadeInUp} className="glass-card rounded-3xl overflow-hidden">
-        {/* Banner */}
-        <div className="h-24 bg-linear-to-r from-primary/80 to-[#0B2E2A]/70" />
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+        {[
+          { label: "Avg Order Value", value: `GH₵${stats.averageOrderValue.toFixed(2)}`, icon: TrendingUp },
+          { label: "Conversion Rate", value: `${stats.conversionRate.toFixed(1)}%`, icon: BarChart3 },
+          { label: "Pending Orders", value: stats.pendingOrders, icon: Clock },
+          { label: "Low Stock Items", value: stats.lowStockItems, icon: AlertCircle },
+        ].map((stat, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 + i * 0.05 }}
+            className="bg-white/50 rounded-xl p-3 border border-[#0B2E2A]/5 text-center"
+          >
+            <stat.icon className="w-4 h-4 text-primary mx-auto mb-1" />
+            <p className="text-lg font-bold text-[#0B2E2A]">{stat.value}</p>
+            <p className="text-xs text-[#0B2E2A]/40">{stat.label}</p>
+          </motion.div>
+        ))}
+      </div>
 
-        <div className="p-6 md:p-8">
-          {/* Logo + Name */}
-          <div className="flex flex-col md:flex-row md:items-end gap-4 -mt-14 mb-6">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-2xl border-4 border-white shadow-lg overflow-hidden bg-white flex items-center justify-center">
-                {logoSrc ? (
-                  <img src={logoSrc} alt={vendor.business_name} className="w-full h-full object-cover" />
-                ) : (
-                  <Store className="w-10 h-10 text-[#0B2E2A]/25" />
-                )}
-              </div>
-              {editing && (
-                <label className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center cursor-pointer shadow-lg hover:bg-primary/90 transition-colors">
-                  {uploadingLogo ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Upload className="w-4 h-4" />
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleLogoUpload}
-                    disabled={uploadingLogo}
-                  />
-                </label>
-              )}
-            </div>
-
-            <div className="flex-1">
-              {editing ? (
-                <Input
-                  value={form.business_name || ""}
-                  onChange={handleChange("business_name")}
-                  className="text-2xl font-bold font-heading text-[#0B2E2A] h-10"
-                  placeholder="Business name"
-                />
-              ) : (
-                <h2 className="text-2xl font-bold font-heading text-[#0B2E2A]">
-                  {vendor.business_name}
-                </h2>
-              )}
-              <div className="flex items-center gap-2 mt-1">
-                {editing ? (
-                  <Input
-                    value={form.category || ""}
-                    onChange={handleChange("category")}
-                    className="text-xs h-7 max-w-40"
-                    placeholder="Category"
-                  />
-                ) : (
-                  <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">
-                    <Tag className="w-3 h-3" />
-                    {vendor.category || "General"}
+      {/* Main Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Orders */}
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-[#0B2E2A]/5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-[#0B2E2A] flex items-center gap-2">
+              <Clock className="w-5 h-5 text-primary" />
+              Recent Orders
+            </h3>
+            <Button
+              variant="ghost"
+              className="text-sm text-primary hover:text-primary/80"
+              onClick={() => window.location.href = '/vendor/admin/orders'}
+            >
+              View All
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {orders.slice(0, 5).map((order, i) => (
+              <motion.div
+                key={order.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="flex items-center justify-between p-3 rounded-xl hover:bg-[#F0F4F4]/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <ShoppingBag className="w-4 h-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-sm text-[#0B2E2A]">{order.product_name}</p>
+                    <p className="text-xs text-[#0B2E2A]/50">{order.customer_name}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-sm text-primary">GH₵{order.total_price?.toFixed(2) || '0.00'}</p>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                    order.status === 'delivered' ? 'bg-emerald-100 text-emerald-600' :
+                    order.status === 'cancelled' ? 'bg-red-100 text-red-600' :
+                    'bg-amber-100 text-amber-600'
+                  }`}>
+                    {order.status || 'pending'}
                   </span>
-                )}
-                <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${
-                  vendor.status === "active" 
-                    ? "bg-green-100 text-green-600" 
-                    : "bg-amber-100 text-amber-600"
-                }`}>
-                  {vendor.status === "active" ? "Active" : "Pending"}
-                </span>
-              </div>
-            </div>
-
-            {editing && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    setEditing(false);
-                    setLogoPreview(null);
-                    setForm(vendor);
-                  }}
-                  variant="outline"
-                  className="rounded-full px-4 h-9"
-                  disabled={saving}
-                >
-                  <X className="w-3.5 h-3.5 mr-1.5" />
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSave}
-                  className="bg-primary hover:bg-primary/90 text-white rounded-full px-4 h-9 font-semibold"
-                  disabled={saving || uploadingLogo}
-                >
-                  {saving ? (
-                    <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                  ) : (
-                    <Save className="w-3.5 h-3.5 mr-1.5" />
-                  )}
-                  Save
-                </Button>
+                </div>
+              </motion.div>
+            ))}
+            {orders.length === 0 && (
+              <div className="text-center py-8 text-[#0B2E2A]/30">
+                No orders yet
               </div>
             )}
           </div>
+        </div>
 
-          {/* Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DetailRow
-              icon={User}
-              label="Owner"
-              editing={editing}
-              value={vendor.owner_name}
-              formValue={form.owner_name}
-              onChange={handleChange("owner_name")}
-              placeholder="Owner name"
-            />
-            <DetailRow
-              icon={Mail}
-              label="Email"
-              editing={false}
-              value={vendor.business_email || user?.email}
-            />
-            <DetailRow
-              icon={Phone}
-              label="Phone"
-              editing={editing}
-              value={vendor.business_phone}
-              formValue={form.business_phone || form.phone}
-              onChange={handleChange("business_phone")}
-              placeholder="Phone number"
-            />
-            <DetailRow
-              icon={MessageCircle}
-              label="WhatsApp"
-              editing={editing}
-              value={vendor.whatsapp_number}
-              formValue={form.whatsapp_number}
-              onChange={handleChange("whatsapp_number")}
-              placeholder="WhatsApp number"
-            />
-            <div className="md:col-span-2">
-              <DetailRow
-                icon={MapPin}
-                label="Address"
-                editing={editing}
-                value={vendor.business_address}
-                formValue={form.business_address || form.address}
-                onChange={handleChange("business_address")}
-                placeholder="Business address"
-              />
-            </div>
-            <DetailRow
-              icon={Smartphone}
-              label="MoMo Number"
-              editing={editing}
-              value={vendor.momo_number}
-              formValue={form.momo_number}
-              onChange={handleChange("momo_number")}
-              placeholder="024XXXXXXX"
-            />
-            <DetailRow
-              icon={CreditCard}
-              label="MoMo Network"
-              editing={editing}
-              value={vendor.momo_network}
-              formValue={form.momo_network}
-              onChange={handleChange("momo_network")}
-              placeholder="MTN / Vodafone / AirtelTigo"
-            />
+        {/* Recent Activity */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#0B2E2A]/5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-bold text-[#0B2E2A] flex items-center gap-2">
+              <Activity className="w-5 h-5 text-primary" />
+              Recent Activity
+            </h3>
+          </div>
+          <div className="space-y-1">
+            {recentActivities.length > 0 ? (
+              recentActivities.map((activity, i) => (
+                <ActivityItem key={i} activity={activity} />
+              ))
+            ) : (
+              <div className="text-center py-8 text-[#0B2E2A]/30">
+                No recent activity
+              </div>
+            )}
           </div>
         </div>
-      </motion.div>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+        {[
+          { label: "Add Product", icon: Plus, href: "#", color: "bg-primary text-white" },
+          { label: "View Orders", icon: ShoppingBag, href: "/vendor/admin/orders", color: "bg-blue-500 text-white" },
+          { label: "View Analytics", icon: BarChart3, href: "/vendor/admin/analytics", color: "bg-purple-500 text-white" },
+          { label: "Manage Profile", icon: User, href: "/vendor/admin/profile", color: "bg-amber-500 text-white" },
+        ].map((action, i) => (
+          <motion.button
+            key={i}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 + i * 0.05 }}
+            onClick={() => window.location.href = action.href}
+            className={`${action.color} rounded-xl p-4 text-center hover:scale-105 transition-transform shadow-lg`}
+          >
+            <action.icon className="w-6 h-6 mx-auto mb-1" />
+            <p className="text-xs font-semibold">{action.label}</p>
+          </motion.button>
+        ))}
+      </div>
     </VendorAdminLayout>
   );
 }
