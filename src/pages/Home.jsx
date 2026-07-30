@@ -11,7 +11,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#F0F4F4]">
       {/* Hero Section */}
       <section className="relative min-h-[80vh] flex items-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-[#0B2E2A]/5" />
+        <div className="absolute inset-0 bg-linear-to-brrom-primary/5 via-transparent to-[#0B2E2A]/5" />
         <div className="relative max-w-7xl mx-auto px-5 py-20 w-full">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}

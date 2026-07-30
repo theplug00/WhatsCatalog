@@ -103,8 +103,11 @@ export default function CatalogGrid() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  
+  // ✅ FIX: Add missing order state
+  const [order, setOrder] = useState("desc");
+  const [orderBy, setOrderBy] = useState("created_at");
 
-  // ✅ Load products from Supabase
   useEffect(() => {
     const loadProducts = async () => {
       setLoading(true);
@@ -114,7 +117,7 @@ export default function CatalogGrid() {
           .from('products')
           .select('*')
           .eq('status', 'active')
-          .order('created_at', { ascending: false })
+          .order(orderBy, { ascending: order === 'asc' })
           .limit(100);
 
         if (error) throw error;
@@ -128,7 +131,7 @@ export default function CatalogGrid() {
     };
 
     loadProducts();
-  }, []);
+  }, [order, orderBy]);
 
   // Get unique categories
   const categories = ["All", ...Array.from(new Set(products.map((p) => p.category).filter(Boolean)))];
@@ -237,7 +240,7 @@ export default function CatalogGrid() {
                 className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${
                   activeCategory === cat
                     ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "glass-card hover:text-primary"
+                    : "glass-card text-[#0B2E2A]/60 hover:text-primary"
                 }`}
               >
                 {cat}
