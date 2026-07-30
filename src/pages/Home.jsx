@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { MessageCircle, ArrowRight, ShieldCheck, Zap, Star } from "lucide-react";
 import CatalogGrid from "@/components/landing/CatalogGrid";
-import Footer from "@/components/Footer";
+import Footer from "@/components/landing/Footer";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
