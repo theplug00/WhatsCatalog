@@ -30,6 +30,19 @@ const NAV_ITEMS = [
 ];
 
 // ============================================
+// LOGO COMPONENT
+// ============================================
+function Logo({ className = "w-10 h-10", variant = "default" }) {
+  const bgClass = variant === "white" ? "bg-white" : "bg-primary";
+  
+  return (
+    <div className={`${className} rounded-xl ${bgClass} overflow-hidden flex items-center justify-center shrink-0`}>
+      <img src="/logo.png" alt="WhatsCatalog" className="w-full h-full object-cover" />
+    </div>
+  );
+}
+
+// ============================================
 // MAIN LAYOUT COMPONENT
 // ============================================
 export default function VendorAdminLayout({ children }) {
@@ -124,9 +137,7 @@ export default function VendorAdminLayout({ children }) {
         {/* Logo */}
         <div className="p-6 border-b border-[#0B2E2A]/5">
           <Link to="/vendor" className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-              <Store className="w-5 h-5 text-white" />
-            </div>
+            <Logo className="w-10 h-10" />
             <span className="text-lg font-bold text-[#0B2E2A] font-heading">
               Whats<span className="text-primary">Catalog</span>
             </span>
@@ -182,9 +193,7 @@ export default function VendorAdminLayout({ children }) {
       {/* ============================================ */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white border-b border-[#0B2E2A]/5 px-4 py-3 flex items-center justify-between">
         <Link to="/vendor" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
-            <Store className="w-4 h-4 text-white" />
-          </div>
+          <Logo className="w-8 h-8" />
           <span className="text-sm font-bold text-[#0B2E2A] font-heading">
             Whats<span className="text-primary">Catalog</span>
           </span>
@@ -219,9 +228,7 @@ export default function VendorAdminLayout({ children }) {
             {/* Mobile Logo */}
             <div className="flex items-center justify-between mb-6">
               <Link to="/vendor" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-                <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
-                  <Store className="w-5 h-5 text-white" />
-                </div>
+                <Logo className="w-9 h-9" />
                 <span className="text-lg font-bold text-[#0B2E2A] font-heading">
                   Whats<span className="text-primary">Catalog</span>
                 </span>

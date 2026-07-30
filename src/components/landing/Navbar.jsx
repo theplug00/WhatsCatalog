@@ -39,17 +39,11 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-5 md:px-8 h-16 md:h-18 flex items-center justify-between">
           {/* Logo */}
-          <button
-            onClick={() => handleNavClick("#hero")}
-            className="flex items-center gap-2.5 group"
-          >
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center glow-pulse">
-              <MessageCircle className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-[#0B2E2A] font-heading">
-              Whats<span className="text-primary">Catalog</span>
-            </span>
-          </button>
+          <img 
+         src="/logo.png" 
+         alt="WhatsCatalog" 
+         className="w-10 h-10 object-contain"
+          />
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-1">

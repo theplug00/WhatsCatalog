@@ -147,7 +147,7 @@ export default function PromoSlider() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: i * 0.1 }}
-            className="shrink-0 w-[300px] md:w-[340px] snap-start group"
+            className="shrink-0 w-75 md:w-85 snap-start group"
           >
             <div className="glass-card rounded-3xl overflow-hidden h-full transition-all duration-500 hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-1">
               {/* Image with parallax overlay */}
@@ -157,7 +157,7 @@ export default function PromoSlider() {
                   alt={card.title}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
 
                 {/* Tag badge */}
                 <div className="absolute top-4 left-4">
