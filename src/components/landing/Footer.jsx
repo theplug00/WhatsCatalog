@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { MessageCircle, Mail, MapPin, Phone, Shield } from "lucide-react";
+import { Mail, MapPin, Phone, Shield } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -10,13 +10,11 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2.5 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center overflow-hidden">
-                <img 
-                  src="/favicon-32x32.png" 
-                  alt="WhatsCatalog" 
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <img 
+                src="/favicon-32x32.png" 
+                alt="WhatsCatalog" 
+                className="w-10 h-10 object-contain"
+              />
               <span className="text-xl font-bold text-white font-heading">
                 Whats<span className="text-primary">Catalog</span>
               </span>
