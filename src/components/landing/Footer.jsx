@@ -11,7 +11,11 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2.5 mb-4">
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center overflow-hidden">
-                <img src="/logo.png" alt="WhatsCatalog" className="w-full h-full object-cover" />
+                <img 
+                  src="/favicon-32x32.png" 
+                  alt="WhatsCatalog" 
+                  className="w-full h-full object-cover"
+                />
               </div>
               <span className="text-xl font-bold text-white font-heading">
                 Whats<span className="text-primary">Catalog</span>
