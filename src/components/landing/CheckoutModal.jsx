@@ -102,9 +102,6 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
         notes: form.notes || "",
         status: 'new',
         created_date: new Date().toISOString(),
-        // ⏳ Payment fields commented out for now
-        // payment_method: null,
-        // payment_status: null,
       };
 
       const { data, error } = await supabase
@@ -117,7 +114,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
 
       setOrderId(data.id);
       
-      // Send WhatsApp message to vendor
+      // Send WhatsApp message to vendor with tracking link
       await sendWhatsAppMessage(data);
 
       setOrderComplete(true);
@@ -149,8 +146,10 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
     }
   };
 
-  // Send WhatsApp message to vendor with all details
+  // ✅ FIXED: Send WhatsApp message with tracking link
   const sendWhatsAppMessage = async (order) => {
+    const trackingLink = `${window.location.origin}/track-order/${order.id}`;
+    
     const message = 
       `🛍️ *New Order Received!*%0A%0A` +
       `*Customer:* ${order.customer_name}%0A` +
@@ -162,23 +161,12 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
       `*Delivery Address:* ${order.delivery_address || 'Not specified'}%0A` +
       `*Notes:* ${order.notes || 'None'}%0A` +
       `*Order ID:* ${order.id.substring(0, 8)}%0A%0A` +
+      `🔗 *Track Order:* ${trackingLink}%0A%0A` +
       `_Please contact the customer to confirm payment and delivery._`;
 
     const whatsappUrl = `https://wa.me/${vendorWhatsApp}?text=${message}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
-  // In sendWhatsAppMessage function
-const trackingLink = `${window.location.origin}/track-order/${order.id}`;
-
-const message = 
-  `🛍️ *New Order Received!*%0A%0A` +
-  `*Customer:* ${order.customer_name}%0A` +
-  `*Phone:* ${order.customer_phone}%0A` +
-  `*Product:* ${order.product_name}%0A` +
-  `*Total:* GH₵${order.total_price.toFixed(2)}%0A` +
-  `*Delivery Address:* ${order.delivery_address || 'Not specified'}%0A%0A` +
-  `🔗 *Track Order:* ${trackingLink}%0A%0A` +
-  `_Please contact the customer to confirm payment and delivery._`;
 
   // If no product, return null
   if (!product) return null;
@@ -347,7 +335,7 @@ const message =
                   value={form.address}
                   onChange={(e) => handleChange("address", e.target.value)}
                   placeholder="Street, city, landmark..."
-                  className="pl-10 rounded-xl min-h-15"
+                  className="pl-10 rounded-xl min-h-[60px]"
                 />
               </div>
               {errors.address && (
@@ -389,7 +377,7 @@ const message =
                 value={form.notes}
                 onChange={(e) => handleChange("notes", e.target.value)}
                 placeholder="Special instructions..."
-                className="rounded-xl min-h-12.5"
+                className="rounded-xl min-h-[50px]"
               />
             </div>
 

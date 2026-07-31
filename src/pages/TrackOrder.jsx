@@ -5,7 +5,8 @@ import {
   Loader2, Package, CheckCircle, XCircle, Clock, 
   Truck, MapPin, Phone, MessageCircle, User, 
   Calendar, ChevronRight, Home, AlertCircle,
-  ShoppingBag, DollarSign, Send, ArrowLeft
+  ShoppingBag, DollarSign, Send, ArrowLeft,
+  Store
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ const STATUS_ORDER = ['new', 'confirmed', 'processing', 'shipped', 'delivered'];
 // ============================================
 export default function TrackOrder() {
   const { orderId } = useParams();
-  const [order, setOrder] = useState(null);
+  const [order, setOrder] = useState(null);  // ✅ This is the key!
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -100,7 +101,6 @@ export default function TrackOrder() {
     setLoading(true);
     setError(null);
     try {
-      // Get order by ID
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .select('*')
@@ -113,9 +113,8 @@ export default function TrackOrder() {
         return;
       }
 
-      setOrder(orderData);
+      setOrder(orderData);  // ✅ Set the order data
 
-      // Get vendor details
       if (orderData.vendor_id) {
         const { data: vendorData } = await supabase
           .from('vendors')
@@ -128,7 +127,6 @@ export default function TrackOrder() {
         }
       }
 
-      // Calculate current step
       const statusIndex = STATUS_ORDER.indexOf(orderData.status);
       setCurrentStep(statusIndex + 1);
 
@@ -144,7 +142,6 @@ export default function TrackOrder() {
   const statusInfo = ORDER_STATUS[order?.status] || ORDER_STATUS.new;
   const StatusIcon = statusInfo.icon;
 
-  // Format date
   const formatDate = (dateStr) => {
     if (!dateStr) return 'N/A';
     try {
@@ -161,11 +158,9 @@ export default function TrackOrder() {
     }
   };
 
-  // WhatsApp number
   const whatsappNumber = vendor?.whatsapp_number || vendor?.business_phone || '';
   const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
 
-  // Generate tracking steps
   const steps = STATUS_ORDER.map((status) => ({
     status,
     label: ORDER_STATUS[status].label,
@@ -207,11 +202,10 @@ export default function TrackOrder() {
     );
   }
 
+  // Main render - only runs if order exists
   return (
-    <div className="min-h-screen bg-linear-to-brom-[#f0f4f4] to-white">
-      {/* ============================================ */}
-      {/* HEADER */}
-      {/* ============================================ */}
+    <div className="min-h-screen bg-linear-to-b from-[#f0f4f4] to-white">
+      {/* Header */}
       <div className="bg-white border-b border-[#0B2E2A]/5 px-5 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-sm text-[#0B2E2A]/60 hover:text-primary transition-colors">
@@ -225,9 +219,7 @@ export default function TrackOrder() {
         </div>
       </div>
 
-      {/* ============================================ */}
-      {/* MAIN CONTENT */}
-      {/* ============================================ */}
+      {/* Main Content */}
       <div className="max-w-3xl mx-auto px-5 py-8">
         {/* Order Header */}
         <motion.div
@@ -268,9 +260,7 @@ export default function TrackOrder() {
           </div>
         </motion.div>
 
-        {/* ============================================ */}
-        {/* TRACKING TIMELINE */}
-        {/* ============================================ */}
+        {/* Tracking Timeline */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -283,17 +273,14 @@ export default function TrackOrder() {
           </h3>
 
           <div className="relative">
-            {/* Vertical line */}
             <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-[#0B2E2A]/10" />
 
             {steps.map((step, index) => {
               const isCompleted = step.isComplete;
               const isCurrent = step.isCurrent;
-              const isLast = index === steps.length - 1;
 
               return (
                 <div key={step.status} className="relative flex gap-4 pb-8 last:pb-0">
-                  {/* Step circle */}
                   <div className="relative z-10">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all ${
                       isCompleted 
@@ -310,7 +297,6 @@ export default function TrackOrder() {
                     </div>
                   </div>
 
-                  {/* Step content */}
                   <div className="flex-1">
                     <div className={`flex items-center gap-2 ${
                       isCompleted ? 'text-[#0B2E2A]' : isCurrent ? 'text-[#0B2E2A]' : 'text-[#0B2E2A]/40'
@@ -337,9 +323,7 @@ export default function TrackOrder() {
           </div>
         </motion.div>
 
-        {/* ============================================ */}
-        {/* VENDOR CONTACT */}
-        {/* ============================================ */}
+        {/* Vendor Contact */}
         {vendor && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -389,9 +373,7 @@ export default function TrackOrder() {
           </motion.div>
         )}
 
-        {/* ============================================ */}
-        {/* HELP / SUPPORT */}
-        {/* ============================================ */}
+        {/* Help */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -407,9 +389,7 @@ export default function TrackOrder() {
         </motion.div>
       </div>
 
-      {/* ============================================ */}
-      {/* FOOTER */}
-      {/* ============================================ */}
+      {/* Footer */}
       <div className="max-w-3xl mx-auto px-5 py-6 border-t border-[#0B2E2A]/5">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#0B2E2A]/40">
           <p>© {new Date().getFullYear()} WhatsCatalog. All rights reserved.</p>
