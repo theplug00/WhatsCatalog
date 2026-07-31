@@ -335,7 +335,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                   value={form.address}
                   onChange={(e) => handleChange("address", e.target.value)}
                   placeholder="Street, city, landmark..."
-                  className="pl-10 rounded-xl min-h-[60px]"
+                  className="pl-10 rounded-xl min-h-15"
                 />
               </div>
               {errors.address && (
@@ -377,7 +377,7 @@ export default function CheckoutModal({ product, onClose, onSuccess, whatsappNum
                 value={form.notes}
                 onChange={(e) => handleChange("notes", e.target.value)}
                 placeholder="Special instructions..."
-                className="rounded-xl min-h-[50px]"
+                className="rounded-xl min-h-12.5"
               />
             </div>
 
