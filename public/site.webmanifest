@@ -1,21 +1,8 @@
 {
-  "name": "WhatsCatalog",
-  "short_name": "WhatsCatalog",
-  "description": "WhatsApp-powered e-commerce platform",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#3ECF8E",
-  "icons": [
-    {
-      "src": "/logo192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/logo512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
-}
+"name":"WhatsCatalog",
+"icons":[
+{"src":"icon-192.png","sizes":"192x192","type":"image/png"},
+{"src":"icon-512.png","sizes":"512x512","type":"image/png"}],
+"theme_color":"#25D366",
+"background_color":"#ffffff",
+"display":"standalone"}
