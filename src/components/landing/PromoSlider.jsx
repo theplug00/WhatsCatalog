@@ -206,4 +206,4 @@ export default function PromoSlider() {
       </div>
     </section>
   );
-}
+}s

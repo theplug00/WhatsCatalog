@@ -11,10 +11,10 @@ export default function CTABanner() {
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative rounded-[2rem] overflow-hidden"
+          className="relative rounded-4xl overflow-hidden"
         >
           {/* Gradient background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0B2E2A] via-[#134e3a] to-[#25D366]/80" />
+          <div className="absolute inset-0 bg-linear-to-br from-[#0B2E2A] via-[#134e3a] to-[#25D366]/80" />
 
           {/* Decorative circles */}
           <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-primary/20 blur-[80px]" />
