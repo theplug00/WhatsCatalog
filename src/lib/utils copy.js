@@ -1,6 +1,7 @@
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+// ✅ Make sure this is exported
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
@@ -53,3 +54,15 @@ export function getInitials(name) {
     .toUpperCase()
     .substring(0, 2);
 }
+
+// ✅ Also export as default for convenience
+const utils = {
+  cn,
+  formatPrice,
+  formatDate,
+  generateSlug,
+  truncateText,
+  getInitials,
+};
+
+export default utils;s
