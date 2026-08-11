@@ -499,7 +499,7 @@ export default function VendorSubscription() {
 
                 <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-700">
                   <p className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>
                       {getPlanIndex(selectedPlan.id) > getPlanIndex(vendor?.plan || "free") 
                         ? 'You will be upgraded to the new plan. Your billing will be adjusted accordingly.'
