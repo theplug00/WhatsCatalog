@@ -115,20 +115,6 @@ export function getPlanById(id) {
   return VENDOR_PLANS.find((p) => p.id === id) || VENDOR_PLANS[0];
 }
 
-export function getPlanByName(name) {
-  return VENDOR_PLANS.find(
-    (p) => p.name.toLowerCase() === name.toLowerCase()
-  ) || VENDOR_PLANS[0];
-}
-
-export function getDefaultPlan() {
-  return VENDOR_PLANS.find((p) => p.id === "free") || VENDOR_PLANS[0];
-}
-
-export function getAvailablePlans() {
-  return VENDOR_PLANS;
-}
-
 export function getPlanLimits(planId) {
   const plan = getPlanById(planId);
   return plan?.limits || VENDOR_PLANS[0].limits;
@@ -154,6 +140,33 @@ export function getRemaining(planId, currentCount, key) {
   if (isUnlimited(planId, key)) return Infinity;
   const limit = getPlanLimit(planId, key);
   return Math.max(0, limit - currentCount);
+}
+
+export function formatCurrency(amount, currency = "GHS") {
+  const symbols = {
+    GHS: "GH₵",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    NGN: "₦",
+  };
+  const symbol = symbols[currency] || symbols.GHS;
+  if (amount === 0) return "Free";
+  return `${symbol}${amount.toFixed(2)}`;
+}
+
+export function getPlanByName(name) {
+  return VENDOR_PLANS.find(
+    (p) => p.name.toLowerCase() === name.toLowerCase()
+  ) || VENDOR_PLANS[0];
+}
+
+export function getDefaultPlan() {
+  return VENDOR_PLANS.find((p) => p.id === "free") || VENDOR_PLANS[0];
+}
+
+export function getAvailablePlans() {
+  return VENDOR_PLANS;
 }
 
 export function isFeatureAvailable(planId, featureKey) {
@@ -201,15 +214,7 @@ export function formatPrice(planId, currency = "GHS") {
   const plan = getPlanById(planId);
   if (!plan) return "Free";
   if (plan.price === 0) return "Free";
-  const symbols = {
-    GHS: "GH₵",
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    NGN: "₦",
-  };
-  const symbol = symbols[currency] || symbols.GHS;
-  return `${symbol}${plan.price}`;
+  return formatCurrency(plan.price, currency);
 }
 
 export function getPlanFeatures(planId) {
@@ -234,17 +239,4 @@ export function getCurrencySymbol(currency = "GHS") {
     NGN: "₦",
   };
   return symbols[currency] || "GH₵";
-}
-
-export function formatCurrency(amount, currency = "GHS") {
-  const symbols = {
-    GHS: "GH₵",
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    NGN: "₦",
-  };
-  const symbol = symbols[currency] || symbols.GHS;
-  if (amount === 0) return "Free";
-  return `${symbol}${amount.toFixed(2)}`;
 }
