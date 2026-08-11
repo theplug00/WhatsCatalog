@@ -5,16 +5,21 @@ import {
   Sparkles, TrendingUp, Clock, Shield, Zap,
   BarChart3, Users, Package, DollarSign,
   ArrowRight, ChevronRight, X, CheckCircle,
-  AlertCircle, Calendar, Download, Printer
+  AlertCircle, Calendar, Download, Printer,
+  MessageCircle
 } from "lucide-react";
 import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
 import CurrentPlanCard from "@/components/vendor/CurrentPlanCard";
 import PlanComparison from "@/components/vendor/PlanComparison";
-import { getPlanById, getPlanLimits, VENDOR_PLANS } from "../lib/vendorPlans";
+import { getPlanById, getPlanLimits, VENDOR_PLANS } from "@/lib/vendorPlans";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+
+// ============================================
+// SUPPORT WHATSAPP NUMBER
+// ============================================
+const SUPPORT_WHATSAPP = "233555140982";
 
 // ============================================
 // ANIMATION VARIANTS
@@ -24,56 +29,6 @@ const fadeInUp = {
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.4 }
 };
-
-const staggerContainer = {
-  animate: {
-    transition: {
-      staggerChildren: 0.06
-    }
-  }
-};
-
-// ============================================
-// FEATURES LIST
-// ============================================
-const FEATURES = [
-  {
-    id: 'products',
-    icon: Package,
-    label: 'Products',
-    description: 'List and sell your products'
-  },
-  {
-    id: 'analytics',
-    icon: BarChart3,
-    label: 'Advanced Analytics',
-    description: 'Track sales and performance'
-  },
-  {
-    id: 'support',
-    icon: Shield,
-    label: 'Priority Support',
-    description: 'Get help when you need it'
-  },
-  {
-    id: 'branding',
-    icon: Crown,
-    label: 'Custom Branding',
-    description: 'Make your store unique'
-  },
-  {
-    id: 'api',
-    icon: Zap,
-    label: 'API Access',
-    description: 'Connect with third-party tools'
-  },
-  {
-    id: 'team',
-    icon: Users,
-    label: 'Team Management',
-    description: 'Manage multiple staff accounts'
-  },
-];
 
 // ============================================
 // MAIN COMPONENT
@@ -85,12 +40,9 @@ export default function VendorSubscription() {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [processing, setProcessing] = useState(false);
-  const [view, setView] = useState("overview"); // overview | plans | history
+  const [view, setView] = useState("overview"); // overview | plans
 
-  // ✅ Support WhatsApp number
-  const SUPPORT_WHATSAPP = "233555140982";
-
-  // ✅ Load vendor profile
+  // ✅ Load vendor profile from Supabase
   useEffect(() => {
     const loadVendor = async () => {
       setLoading(true);
@@ -145,7 +97,12 @@ export default function VendorSubscription() {
     setShowConfirmModal(true);
   };
 
-  // ✅ Confirm upgrade/downgrade
+  // ✅ Get plan index
+  const getPlanIndex = (planId) => {
+    return VENDOR_PLANS.findIndex(p => p.id === planId);
+  };
+
+  // ✅ Confirm plan change
   const confirmPlanChange = async () => {
     setProcessing(true);
     try {
@@ -188,11 +145,6 @@ export default function VendorSubscription() {
     } finally {
       setProcessing(false);
     }
-  };
-
-  // ✅ Get plan index
-  const getPlanIndex = (planId) => {
-    return VENDOR_PLANS.findIndex(p => p.id === planId);
   };
 
   // ✅ Loading state

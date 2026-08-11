@@ -111,10 +111,26 @@ export const VENDOR_PLANS = [
   },
 ];
 
+// ✅ Plan lookup functions
 export function getPlanById(id) {
   return VENDOR_PLANS.find((p) => p.id === id) || VENDOR_PLANS[0];
 }
 
+export function getPlanByName(name) {
+  return VENDOR_PLANS.find(
+    (p) => p.name.toLowerCase() === name.toLowerCase()
+  ) || VENDOR_PLANS[0];
+}
+
+export function getDefaultPlan() {
+  return VENDOR_PLANS.find((p) => p.id === "free") || VENDOR_PLANS[0];
+}
+
+export function getAvailablePlans() {
+  return VENDOR_PLANS;
+}
+
+// ✅ Limits functions
 export function getPlanLimits(planId) {
   const plan = getPlanById(planId);
   return plan?.limits || VENDOR_PLANS[0].limits;
@@ -142,33 +158,6 @@ export function getRemaining(planId, currentCount, key) {
   return Math.max(0, limit - currentCount);
 }
 
-export function formatCurrency(amount, currency = "GHS") {
-  const symbols = {
-    GHS: "GH₵",
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    NGN: "₦",
-  };
-  const symbol = symbols[currency] || symbols.GHS;
-  if (amount === 0) return "Free";
-  return `${symbol}${amount.toFixed(2)}`;
-}
-
-export function getPlanByName(name) {
-  return VENDOR_PLANS.find(
-    (p) => p.name.toLowerCase() === name.toLowerCase()
-  ) || VENDOR_PLANS[0];
-}
-
-export function getDefaultPlan() {
-  return VENDOR_PLANS.find((p) => p.id === "free") || VENDOR_PLANS[0];
-}
-
-export function getAvailablePlans() {
-  return VENDOR_PLANS;
-}
-
 export function isFeatureAvailable(planId, featureKey) {
   const plan = getPlanById(planId);
   if (!plan || !plan.limits) return false;
@@ -176,6 +165,7 @@ export function isFeatureAvailable(planId, featureKey) {
   return limit === undefined || limit === -1 || limit > 0;
 }
 
+// ✅ Plan comparison functions
 export function canUpgrade(currentPlanId, targetPlanId) {
   const plans = VENDOR_PLANS;
   const currentIndex = plans.findIndex((p) => p.id === currentPlanId);
@@ -204,6 +194,7 @@ export function getPreviousPlan(currentPlanId) {
   return plans[currentIndex - 1];
 }
 
+// ✅ Price functions
 export function getPriceDifference(planIdA, planIdB) {
   const planA = getPlanById(planIdA);
   const planB = getPlanById(planIdB);
@@ -217,6 +208,20 @@ export function formatPrice(planId, currency = "GHS") {
   return formatCurrency(plan.price, currency);
 }
 
+export function formatCurrency(amount, currency = "GHS") {
+  const symbols = {
+    GHS: "GH₵",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    NGN: "₦",
+  };
+  const symbol = symbols[currency] || symbols.GHS;
+  if (amount === 0) return "Free";
+  return `${symbol}${amount.toFixed(2)}`;
+}
+
+// ✅ Feature functions
 export function getPlanFeatures(planId) {
   const plan = getPlanById(planId);
   return plan?.features || [];
