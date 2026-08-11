@@ -1,4 +1,3 @@
- 
 // src/lib/vendorPlans.js
 export const VENDOR_PLANS = [
   {
@@ -74,7 +73,7 @@ export const VENDOR_PLANS = [
       "Multi-agent inbox",
     ],
     limits: {
-      products: -1, // Unlimited
+      products: -1,
       imagesPerProduct: 10,
       ordersPerMonth: 1000,
       support: "whatsapp_priority",
@@ -102,9 +101,9 @@ export const VENDOR_PLANS = [
       "White-label options",
     ],
     limits: {
-      products: -1, // Unlimited
+      products: -1,
       imagesPerProduct: 20,
-      ordersPerMonth: -1, // Unlimited
+      ordersPerMonth: -1,
       support: "dedicated",
     },
     cta: "Contact Sales",
@@ -114,6 +113,24 @@ export const VENDOR_PLANS = [
 
 export function getPlanById(id) {
   return VENDOR_PLANS.find((p) => p.id === id) || VENDOR_PLANS[0];
+}
+
+export function getPlanLimits(planId) {
+  const plan = getPlanById(planId);
+  return plan?.limits || VENDOR_PLANS[0].limits;
+}
+
+export function formatCurrency(amount, currency = "GHS") {
+  const symbols = {
+    GHS: "GH₵",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    NGN: "₦",
+  };
+  const symbol = symbols[currency] || symbols.GHS;
+  if (amount === 0) return "Free";
+  return `${symbol}${amount.toFixed(2)}`;
 }
 
 export function getPlanByName(name) {
@@ -128,11 +145,6 @@ export function getDefaultPlan() {
 
 export function getAvailablePlans() {
   return VENDOR_PLANS;
-}
-
-export function getPlanLimits(planId) {
-  const plan = getPlanById(planId);
-  return plan?.limits || VENDOR_PLANS[0].limits;
 }
 
 export function getPlanLimit(planId, key) {
@@ -155,13 +167,6 @@ export function getRemaining(planId, currentCount, key) {
   if (isUnlimited(planId, key)) return Infinity;
   const limit = getPlanLimit(planId, key);
   return Math.max(0, limit - currentCount);
-}
-
-export function isFeatureAvailable(planId, featureKey) {
-  const plan = getPlanById(planId);
-  if (!plan || !plan.limits) return false;
-  const limit = plan.limits[featureKey];
-  return limit === undefined || limit === -1 || limit > 0;
 }
 
 export function canUpgrade(currentPlanId, targetPlanId) {
@@ -192,32 +197,6 @@ export function getPreviousPlan(currentPlanId) {
   return plans[currentIndex - 1];
 }
 
-export function getPriceDifference(planIdA, planIdB) {
-  const planA = getPlanById(planIdA);
-  const planB = getPlanById(planIdB);
-  return (planB?.price || 0) - (planA?.price || 0);
-}
-
-export function formatPrice(planId, currency = "GHS") {
-  const plan = getPlanById(planId);
-  if (!plan) return "Free";
-  if (plan.price === 0) return "Free";
-  return formatCurrency(plan.price, currency);
-}
-
-export function formatCurrency(amount, currency = "GHS") {
-  const symbols = {
-    GHS: "GH₵",
-    USD: "$",
-    EUR: "€",
-    GBP: "£",
-    NGN: "₦",
-  };
-  const symbol = symbols[currency] || symbols.GHS;
-  if (amount === 0) return "Free";
-  return `${symbol}${amount.toFixed(2)}`;
-}
-
 export function getPlanFeatures(planId) {
   const plan = getPlanById(planId);
   return plan?.features || [];
@@ -240,4 +219,24 @@ export function getCurrencySymbol(currency = "GHS") {
     NGN: "₦",
   };
   return symbols[currency] || "GH₵";
+}
+
+export function formatPrice(planId, currency = "GHS") {
+  const plan = getPlanById(planId);
+  if (!plan) return "Free";
+  if (plan.price === 0) return "Free";
+  return formatCurrency(plan.price, currency);
+}
+
+export function getPriceDifference(planIdA, planIdB) {
+  const planA = getPlanById(planIdA);
+  const planB = getPlanById(planIdB);
+  return (planB?.price || 0) - (planA?.price || 0);
+}
+
+export function isFeatureAvailable(planId, featureKey) {
+  const plan = getPlanById(planId);
+  if (!plan || !plan.limits) return false;
+  const limit = plan.limits[featureKey];
+  return limit === undefined || limit === -1 || limit > 0;
 }
