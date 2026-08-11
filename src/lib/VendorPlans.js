@@ -1,3 +1,4 @@
+// src/lib/vendorPlans.js
 export const VENDOR_PLANS = [
   {
     id: "free",
