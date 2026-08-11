@@ -1,7 +1,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, CheckCircle2, AlertTriangle, CreditCard } from "lucide-react";
-import { formatCurrency } from "@/lib/vendorPlans";
+import { formatCurrency } from "../../lib/vendorPlans";
+
 
 const PLAN_GRADIENTS = {
   free: "bg-gradient-to-br from-slate-500 to-slate-700",

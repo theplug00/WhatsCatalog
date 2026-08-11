@@ -12,7 +12,7 @@ import { supabase } from "@/api/supabase";
 import VendorAdminLayout from "@/components/vendor/VendorAdminLayout";
 import CurrentPlanCard from "@/components/vendor/CurrentPlanCard";
 import PlanComparison from "@/components/vendor/PlanComparison";
-import { getPlanById, getPlanLimits, VENDOR_PLANS } from "@/lib/vendorPlans";
+import { getPlanById, getPlanLimits, VENDOR_PLANS } from "../lib/vendorPlans";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 
