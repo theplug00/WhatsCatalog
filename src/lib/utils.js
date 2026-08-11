@@ -65,4 +65,4 @@ const utils = {
   getInitials,
 };
 
-export default utils;s
+export default utils;
