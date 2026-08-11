@@ -1,3 +1,4 @@
+ 
 // src/lib/vendorPlans.js
 export const VENDOR_PLANS = [
   {
@@ -111,7 +112,6 @@ export const VENDOR_PLANS = [
   },
 ];
 
-// ✅ Plan lookup functions
 export function getPlanById(id) {
   return VENDOR_PLANS.find((p) => p.id === id) || VENDOR_PLANS[0];
 }
@@ -130,7 +130,6 @@ export function getAvailablePlans() {
   return VENDOR_PLANS;
 }
 
-// ✅ Limits functions
 export function getPlanLimits(planId) {
   const plan = getPlanById(planId);
   return plan?.limits || VENDOR_PLANS[0].limits;
@@ -165,7 +164,6 @@ export function isFeatureAvailable(planId, featureKey) {
   return limit === undefined || limit === -1 || limit > 0;
 }
 
-// ✅ Plan comparison functions
 export function canUpgrade(currentPlanId, targetPlanId) {
   const plans = VENDOR_PLANS;
   const currentIndex = plans.findIndex((p) => p.id === currentPlanId);
@@ -194,7 +192,6 @@ export function getPreviousPlan(currentPlanId) {
   return plans[currentIndex - 1];
 }
 
-// ✅ Price functions
 export function getPriceDifference(planIdA, planIdB) {
   const planA = getPlanById(planIdA);
   const planB = getPlanById(planIdB);
@@ -221,7 +218,6 @@ export function formatCurrency(amount, currency = "GHS") {
   return `${symbol}${amount.toFixed(2)}`;
 }
 
-// ✅ Feature functions
 export function getPlanFeatures(planId) {
   const plan = getPlanById(planId);
   return plan?.features || [];
