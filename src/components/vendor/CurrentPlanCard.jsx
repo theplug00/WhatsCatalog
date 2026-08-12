@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, CheckCircle2, AlertTriangle, CreditCard } from "lucide-react";
-import { formatCurrency } from "../../lib/vendorPlans";
+import { formatCurrency } from "@/pages/vendorPlans";
 
 
 const PLAN_GRADIENTS = {
