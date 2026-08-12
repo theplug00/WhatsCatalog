@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Menu, X, ChevronRight, Store } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
+import Logo from "@/components/Logo";
 const NAV_LINKS = [
   { label: "Overview", href: "#hero" },
   { label: "Features", href: "#features" },

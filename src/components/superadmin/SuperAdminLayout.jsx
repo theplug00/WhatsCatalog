@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
+import Logo from "@/components/Logo";
 import { 
   LayoutDashboard, 
   Store, 
