@@ -1,5 +1,4 @@
 import React from "react";
-import { MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import VendorPromoPanel from "@/components/landing/VendorPromoPanel";
 import Logo from "@/components/Logo";
@@ -18,14 +17,10 @@ export default function VendorAuthLayout({ children, side = "login" }) {
       {/* Right form panel */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-5 md:p-8 z-10">
         <div className="w-full max-w-md">
-          {/* Mobile logo - fixed */}
-          <div className="flex justify-center lg:justify-start mb-4">
-            <img 
-              src="/logo.png" 
-              alt="WhatsCatalog" 
-              className="w-12 h-12 object-contain"
-            />
-          </div>
+          {/* Mobile logo - shown only on mobile */}
+          <Link to="/" className="flex items-center gap-2.5 justify-center mb-8">
+            <Logo size="lg" />
+          </Link>
 
           <div className="glass-heavy rounded-3xl p-6 md:p-8 shadow-2xl shadow-primary/5">
             {children}

@@ -4,6 +4,7 @@ import { MessageCircle, Menu, X, ChevronRight, Store } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
+
 const NAV_LINKS = [
   { label: "Overview", href: "#hero" },
   { label: "Features", href: "#features" },
@@ -40,12 +41,7 @@ export default function VendorNavbar() {
         <div className="max-w-7xl mx-auto px-5 md:px-8 h-16 md:h-18 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center glow-pulse">
-              <Store className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-[#0B2E2A] font-heading">
-              Whats<span className="text-primary">Catalog</span>
-            </span>
+            <Logo size="md" />
           </Link>
 
           {/* Desktop links */}

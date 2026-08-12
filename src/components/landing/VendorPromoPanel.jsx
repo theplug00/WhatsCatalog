@@ -2,7 +2,6 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
-  MessageCircle,
   Store,
   Zap,
   BarChart3,
@@ -11,6 +10,7 @@ import {
   Star,
   ArrowRight,
 } from "lucide-react";
+import Logo from "@/components/Logo";
 
 const FEATURES = [
   {
@@ -40,12 +40,7 @@ export default function VendorPromoPanel() {
     <div className="hidden lg:flex lg:w-1/2 relative flex-col justify-between p-12 xl:p-16 z-10 overflow-y-auto">
       {/* Logo */}
       <Link to="/" className="flex items-center gap-2.5 w-fit">
-        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-          <MessageCircle className="w-5 h-5 text-primary-foreground" />
-        </div>
-        <span className="text-xl font-bold tracking-tight text-[#0B2E2A] font-heading">
-          Whats<span className="text-primary">Catalog</span>
-        </span>
+        <Logo size="lg" />
       </Link>
 
       {/* Main content */}
@@ -120,7 +115,7 @@ export default function VendorPromoPanel() {
             Customers love ordering through WhatsApp — it's that easy."
           </p>
           <div className="flex items-center gap-3 mt-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-10 h-10 rounded-full bg-linear-to-br from-primary to-[#0B2E2A] flex items-center justify-center text-white font-bold text-sm">
               SK
             </div>
             <div>
@@ -132,7 +127,7 @@ export default function VendorPromoPanel() {
       </div>
 
       {/* Footer */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-4 border-t border-[#0B2E2A]/5">
         <p className="text-sm text-[#0B2E2A]/40">
           © {new Date().getFullYear()} WhatsCatalog
         </p>

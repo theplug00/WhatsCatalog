@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MessageCircle, Menu, X, ShoppingBag, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/Logo";
 
 const NAV_LINKS = [
   { label: "Home", href: "#hero" },
@@ -39,11 +40,12 @@ export default function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-5 md:px-8 h-16 md:h-18 flex items-center justify-between">
           {/* Logo */}
-          <img 
-         src="/logo.png" 
-         alt="WhatsCatalog" 
-         className="w-10 h-10 object-contain"
-          />
+          <button
+            onClick={() => handleNavClick("#hero")}
+            className="flex items-center gap-2.5 group"
+          >
+            <Logo size="md" />
+          </button>
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-1">
