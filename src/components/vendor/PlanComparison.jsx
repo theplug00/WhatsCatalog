@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Check, Sparkles, ArrowUpRight, Crown, TrendingUp, TrendingDown } from "lucide-react";
-import { VENDOR_PLANS, formatCurrency, getPlanLimits } from "@/lib/vendorPlans";
+import { VENDOR_PLANS, formatCurrency, getPlanLimits } from "../../lib/vendorPlans";
 
 export default function PlanComparison({ currentPlanId, onUpgrade, onDowngrade }) {
   // ✅ Get current plan index for comparison
