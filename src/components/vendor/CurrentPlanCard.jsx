@@ -1,8 +1,21 @@
+// src/components/vendor/CurrentPlanCard.jsx
 import React from "react";
 import { motion } from "framer-motion";
 import { Calendar, Clock, CheckCircle2, AlertTriangle, CreditCard } from "lucide-react";
 
-
+// ✅ Inline formatCurrency function (no import needed)
+function formatCurrency(amount, currency = "GHS") {
+  const symbols = {
+    GHS: "GH₵",
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    NGN: "₦",
+  };
+  const symbol = symbols[currency] || symbols.GHS;
+  if (amount === 0) return "Free";
+  return `${symbol}${amount.toFixed(2)}`;
+}
 
 const PLAN_GRADIENTS = {
   free: "bg-gradient-to-br from-slate-500 to-slate-700",
@@ -23,7 +36,6 @@ export default function CurrentPlanCard({ vendor, plan }) {
   const status = vendor?.subscription_status || "active";
   const statusStyle = STATUS_STYLES[status] || STATUS_STYLES.active;
 
-  // ✅ Calculate days remaining
   const daysRemaining = vendor?.subscription_end
     ? Math.max(
         0,
@@ -34,11 +46,8 @@ export default function CurrentPlanCard({ vendor, plan }) {
     : null;
 
   const isExpired = status === "expired" || status === "cancelled";
-
-  // ✅ Check if on free plan
   const isFreePlan = plan?.id === "free";
 
-  // ✅ Format date display
   const formatDate = (dateStr) => {
     if (!dateStr) return "—";
     try {
@@ -52,7 +61,6 @@ export default function CurrentPlanCard({ vendor, plan }) {
     }
   };
 
-  // ✅ Get price display
   const getPriceDisplay = () => {
     if (!plan) return "Free";
     if (plan.price === 0 || plan.id === "free") return "Free";
@@ -101,7 +109,6 @@ export default function CurrentPlanCard({ vendor, plan }) {
 
       {/* Details grid */}
       <div className="glass-heavy p-5 md:p-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {/* Billing Period */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Calendar className="w-4 h-4 text-primary" />
@@ -122,7 +129,6 @@ export default function CurrentPlanCard({ vendor, plan }) {
           </div>
         </div>
 
-        {/* Days Remaining */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             <Clock className="w-4 h-4 text-primary" />
@@ -149,7 +155,6 @@ export default function CurrentPlanCard({ vendor, plan }) {
           </div>
         </div>
 
-        {/* Account Status */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
             {isExpired ? (
