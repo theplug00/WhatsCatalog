@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+// src/components/AdminRoute.jsx
+import React, { useEffect, useState } from "react";  // ✅ Added useEffect
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/api/supabase";
 
@@ -23,12 +24,7 @@ export default function AdminRoute({ children }) {
           .eq('id', user.id)
           .single();
 
-        // ✅ Allow both 'admin' and 'super_admin' roles
-        const isAdminUser = !error && adminData !== null && 
-          (adminData.role === 'super_admin' || adminData.role === 'admin') && 
-          adminData.is_active === true;
-
-        setIsAdmin(isAdminUser);
+        setIsAdmin(!error && adminData !== null && adminData.is_active === true);
       } catch (error) {
         console.error('Admin check error:', error);
         setIsAdmin(false);
