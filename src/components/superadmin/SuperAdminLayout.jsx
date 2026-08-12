@@ -1,176 +1,162 @@
+// src/pages/superadmin/SuperAdminLogin.jsx
 import React, { useState } from "react";
-import { Link, Outlet, useLocation } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Store, 
-  ShoppingBag, 
-  Users, 
-  CreditCard, 
-  MessageCircle, 
-  Menu, 
-  X,
-  BarChart3,
-  Bell,
-  LogOut
-} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { Mail, Lock, Loader2, Shield, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/api/supabase";
-import Logo from "@/components/Logo";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-const NAV = [
-  { to: "/super-admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { to: "/super-admin/analytics", label: "Analytics", icon: BarChart3 },
-  { to: "/super-admin/notifications", label: "Notifications", icon: Bell },
-  { to: "/super-admin/vendors", label: "Vendors", icon: Store },
-  { to: "/super-admin/orders", label: "Orders", icon: ShoppingBag },
-  { to: "/super-admin/customers", label: "Customers", icon: Users },
-  { to: "/super-admin/subscriptions", label: "Subscriptions", icon: CreditCard },
-];
+export default function SuperAdminLogin() {
+  const [email, setEmail] = useState("admin@business.com");
+  const [password, setPassword] = useState("Admin@123");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
 
-export default function SuperAdminLayout() {
-  const location = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
 
-  const isActive = (item) =>
-    item.exact
-      ? location.pathname === item.to
-      : location.pathname.startsWith(item.to);
+    try {
+      // 1. Sign in
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/super-admin/login';
+      if (error) throw error;
+
+      // 2. Check if user is admin
+      const { data: adminData, error: adminError } = await supabase
+        .from('admins')
+        .select('*')
+        .eq('id', data.user.id)
+        .single();
+
+      if (adminError || !adminData) {
+        await supabase.auth.signOut();
+        setError("Access denied. Admin privileges required.");
+        setLoading(false);
+        return;
+      }
+
+      if (!adminData.is_active) {
+        await supabase.auth.signOut();
+        setError("Admin account is deactivated.");
+        setLoading(false);
+        return;
+      }
+
+      // ✅ Set session in localStorage for faster auth check
+      localStorage.setItem('admin_session', 'true');
+      
+      // ✅ Force navigate to dashboard
+      window.location.href = '/super-admin/dashboard';
+
+    } catch (err) {
+      setError(err.message || "Login failed. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-[#F0F4F4] flex">
-      {/* ============================================ */}
-      {/* DESKTOP SIDEBAR - hidden on mobile */}
-      {/* ============================================ */}
-      <aside className="hidden lg:flex w-64 bg-[#0B2E2A] text-white flex-col fixed inset-y-0 left-0 z-30">
-        <div className="px-6 py-5 border-b border-white/10">
-          <Link to="/super-admin" className="flex items-center gap-2.5">
-            <Logo size="md" textClass="text-white" />
-          </Link>
-        </div>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-linear-to-br from-[#f0f4f4] to-[#e8f5e9]">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md"
+      >
+        <div className="bg-white rounded-3xl shadow-xl p-8 border border-[#0B2E2A]/5">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="text-2xl font-extrabold font-heading text-[#0B2E2A]">
+              Admin Login
+            </h1>
+            <p className="text-sm text-[#0B2E2A]/50 mt-1">
+              Secure access to the admin dashboard
+            </p>
+          </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1">
-          {NAV.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item);
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-primary text-white"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                <Icon className="w-4.5 h-4.5" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="px-3 py-4 border-t border-white/10">
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 px-3.5 py-2.5 w-full rounded-xl text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-          >
-            <LogOut className="w-4.5 h-4.5" />
-            Logout
-          </button>
-        </div>
-      </aside>
-
-      {/* ============================================ */}
-      {/* MOBILE HEADER - only visible on mobile */}
-      {/* ============================================ */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-[#0B2E2A] px-4 py-3 flex items-center justify-between">
-        <Link to="/super-admin" className="flex items-center gap-2">
-          <Logo size="sm" textClass="text-white" />
-        </Link>
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 rounded-lg hover:bg-white/10 transition-colors"
-        >
-          {mobileOpen ? (
-            <X className="w-5 h-5 text-white" />
-          ) : (
-            <Menu className="w-5 h-5 text-white" />
+          {error && (
+            <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
+              {error}
+            </div>
           )}
-        </button>
-      </div>
 
-      {/* ============================================ */}
-      {/* MOBILE SIDEBAR OVERLAY - slides in from left */}
-      {/* ============================================ */}
-      {mobileOpen && (
-        <>
-          {/* Backdrop overlay */}
-          <div
-            className="lg:hidden fixed inset-0 z-40 bg-black/50"
-            onClick={() => setMobileOpen(false)}
-          />
-          
-          {/* Sidebar panel - 80% width on mobile */}
-          <aside className="lg:hidden fixed top-0 left-0 z-50 w-[80%] max-w-sm h-full bg-[#0B2E2A] text-white flex flex-col shadow-2xl transition-transform duration-300 ease-in-out">
-            <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
-              <Link to="/super-admin" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-                <Logo size="md" textClass="text-white" />
-              </Link>
-              <button
-                onClick={() => setMobileOpen(false)}
-                className="p-1 rounded-lg hover:bg-white/10 transition-colors"
-              >
-                <X className="w-5 h-5 text-white" />
-              </button>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-[#0B2E2A] font-medium">
+                Email Address
+              </Label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-12 bg-white/50 border-[#0B2E2A]/10 focus:bg-white/70 rounded-xl"
+                  placeholder="admin@business.com"
+                  required
+                />
+              </div>
             </div>
 
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-              {NAV.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item);
-                return (
-                  <Link
-                    key={item.to}
-                    to={item.to}
-                    onClick={() => setMobileOpen(false)}
-                    className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      active
-                        ? "bg-primary text-white"
-                        : "text-white/70 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <Icon className="w-4.5 h-4.5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="px-3 py-4 border-t border-white/10">
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-3.5 py-2.5 w-full rounded-xl text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-colors"
-              >
-                <LogOut className="w-4.5 h-4.5" />
-                Logout
-              </button>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-[#0B2E2A] font-medium">
+                Password
+              </Label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10 pr-10 h-12 bg-white/50 border-[#0B2E2A]/10 focus:bg-white/70 rounded-xl"
+                  placeholder="••••••••"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#0B2E2A]/40 hover:text-[#0B2E2A]/70"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </aside>
-        </>
-      )}
 
-      {/* ============================================ */}
-      {/* MAIN CONTENT - with padding for mobile header */}
-      {/* ============================================ */}
-      <main className="flex-1 lg:ml-64 pt-16 lg:pt-0">
-        <div className="p-4 md:p-8">
-          <Outlet />
+            <Button
+              type="submit"
+              className="w-full h-12 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Logging in...
+                </>
+              ) : (
+                <>
+                  Login to Dashboard
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </>
+              )}
+            </Button>
+          </form>
+
+          <p className="text-center text-xs text-[#0B2E2A]/40 mt-6">
+            Default: admin@business.com / Admin@123
+          </p>
         </div>
-      </main>
+      </motion.div>
     </div>
   );
 }

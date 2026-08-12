@@ -33,9 +33,23 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminRoute from '@/components/AdminRoute';
 import { Navigate } from 'react-router-dom';
 import TrackOrder from '@/pages/TrackOrder';
+import { useEffect } from 'react';
+import { supabase } from '@/api/supabase';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  useEffect(() => {
+  // Pre-check auth on app load
+  const checkSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      localStorage.setItem('admin_session', 'true');
+    } else {
+      localStorage.removeItem('admin_session');
+    }
+  };
+  checkSession();
+}, []);
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (

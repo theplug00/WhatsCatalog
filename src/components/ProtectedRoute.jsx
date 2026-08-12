@@ -1,26 +1,30 @@
 // src/components/ProtectedRoute.jsx
-import React, { useEffect } from "react";  // ✅ Added useEffect
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/lib/AuthContext";
+import { supabase } from "@/api/supabase";
 
 export default function ProtectedRoute({ children, unauthenticatedElement }) {
-  const { 
-    isAuthenticated, 
-    isLoadingAuth, 
-    authChecked, 
-    authError, 
-    checkUserAuth 
-  } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // ✅ useEffect to check auth
   useEffect(() => {
-    if (!authChecked && !isLoadingAuth) {
-      checkUserAuth();
-    }
-  }, [authChecked, isLoadingAuth, checkUserAuth]);
+    const checkAuth = async () => {
+      try {
+        // ✅ Quick check with localStorage
+        const { data: { user } } = await supabase.auth.getUser();
+        setIsAuthenticated(!!user);
+      } catch (error) {
+        console.error('Auth check error:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // If still loading, show loading spinner
-  if (isLoadingAuth || !authChecked) {
+    checkAuth();
+  }, []);
+
+  if (loading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
@@ -28,11 +32,9 @@ export default function ProtectedRoute({ children, unauthenticatedElement }) {
     );
   }
 
-  // If error, redirect to login
-  if (authError || !isAuthenticated) {
+  if (!isAuthenticated) {
     return unauthenticatedElement || <Navigate to="/login" replace />;
   }
 
-  // If authenticated, render children
   return children;
 }
