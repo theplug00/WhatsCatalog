@@ -83,13 +83,13 @@ const AuthenticatedApp = () => {
       {/* SUPER ADMIN ROUTES - SINGLE ENTRY POINT */}
       {/* ============================================ */}
       <Route 
-        path="/super-admin" 
-        element={
-          <AdminRoute>
-            <SuperAdminLayout />
-          </AdminRoute>
-        }
-      >
+  path="/super-admin" 
+  element={
+    <AdminRoute>
+      <SuperAdminLayout />
+    </AdminRoute>
+  }
+>
         <Route index element={<Navigate to="/super-admin/dashboard" replace />} />
         <Route path="dashboard" element={<SuperAdminDashboard />} />
         <Route path="vendors" element={<SuperAdminVendors />} />
