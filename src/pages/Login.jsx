@@ -29,14 +29,14 @@ export default function Login() {
 
       if (error) throw error;
 
-      // Check if user is an admin
+      // ✅ Check if user is an admin
       const { data: adminData, error: adminError } = await supabase
         .from('admins')
         .select('*')
         .eq('id', data.user.id)
         .single();
 
-      // If user is an admin, redirect to admin dashboard
+      // If user is an admin, redirect to super-admin dashboard
       if (!adminError && adminData) {
         if (!adminData.is_active) {
           await supabase.auth.signOut();
@@ -44,7 +44,8 @@ export default function Login() {
           setLoading(false);
           return;
         }
-        navigate("/admin/dashboard");
+        // ✅ Fixed: redirect to /super-admin/dashboard
+        navigate("/super-admin/dashboard");
         return;
       }
 
