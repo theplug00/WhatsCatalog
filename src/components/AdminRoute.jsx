@@ -1,5 +1,5 @@
 // src/components/AdminRoute.jsx
-import React, { useEffect, useState } from "react";  // ✅ Added useEffect
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/api/supabase";
 
@@ -10,23 +10,34 @@ export default function AdminRoute({ children }) {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
+        // ✅ First check - localStorage quick check
+        const cachedSession = localStorage.getItem('admin_session');
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
+          localStorage.removeItem('admin_session');
           setIsAdmin(false);
           setLoading(false);
           return;
         }
 
+        // ✅ If we have cached session and user, check admin status
         const { data: adminData, error } = await supabase
           .from('admins')
-          .select('*')
+          .select('id, is_active')
           .eq('id', user.id)
           .single();
 
-        setIsAdmin(!error && adminData !== null && adminData.is_active === true);
+        if (!error && adminData && adminData.is_active) {
+          localStorage.setItem('admin_session', 'true');
+          setIsAdmin(true);
+        } else {
+          localStorage.removeItem('admin_session');
+          setIsAdmin(false);
+        }
       } catch (error) {
         console.error('Admin check error:', error);
+        localStorage.removeItem('admin_session');
         setIsAdmin(false);
       } finally {
         setLoading(false);
@@ -36,6 +47,7 @@ export default function AdminRoute({ children }) {
     checkAdmin();
   }, []);
 
+  // ✅ Show loading only briefly
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
