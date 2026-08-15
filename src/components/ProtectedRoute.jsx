@@ -1,6 +1,6 @@
 // src/components/ProtectedRoute.jsx
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 import { supabase } from "@/api/supabase";
 
 export default function ProtectedRoute({ children, unauthenticatedElement }) {
@@ -10,7 +10,6 @@ export default function ProtectedRoute({ children, unauthenticatedElement }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // ✅ Quick check with localStorage
         const { data: { user } } = await supabase.auth.getUser();
         setIsAuthenticated(!!user);
       } catch (error) {
@@ -36,5 +35,5 @@ export default function ProtectedRoute({ children, unauthenticatedElement }) {
     return unauthenticatedElement || <Navigate to="/login" replace />;
   }
 
-  return children;
+  return children ?? <Outlet />;
 }
