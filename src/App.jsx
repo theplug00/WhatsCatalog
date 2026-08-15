@@ -20,36 +20,22 @@ import VendorAnalytics from '@/pages/VendorAnalytics';
 import VendorProfilePage from '@/pages/VendorProfilePage';
 import VendorSubscription from '@/pages/VendorSubscription';
 import VendorStore from '@/pages/VendorStore';
+import TrackOrder from '@/pages/TrackOrder';
 import SuperAdminLayout from '@/components/superadmin/SuperAdminLayout';
 import SuperAdminDashboard from '@/pages/superadmin/SuperAdminDashboard';
 import SuperAdminVendors from '@/pages/superadmin/SuperAdminVendors';
 import SuperAdminOrders from '@/pages/superadmin/SuperAdminOrders';
 import SuperAdminCustomers from '@/pages/superadmin/SuperAdminCustomers';
 import SuperAdminSubscriptions from '@/pages/superadmin/SuperAdminSubscriptions';
-import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
 import SuperAdminAnalytics from '@/pages/superadmin/SuperAdminAnalytics';
 import SuperAdminNotifications from '@/pages/superadmin/SuperAdminNotifications';
+import SuperAdminLogin from '@/pages/superadmin/SuperAdminLogin';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import AdminRoute from '@/components/AdminRoute';
 import { Navigate } from 'react-router-dom';
-import TrackOrder from '@/pages/TrackOrder';
-import { useEffect } from 'react';
-import { supabase } from '@/api/supabase';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
-  useEffect(() => {
-  // Pre-check auth on app load
-  const checkSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      localStorage.setItem('admin_session', 'true');
-    } else {
-      localStorage.removeItem('admin_session');
-    }
-  };
-  checkSession();
-}, []);
 
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
@@ -90,39 +76,49 @@ const AuthenticatedApp = () => {
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
 
       {/* ============================================ */}
-      {/* SUPER ADMIN ROUTES - PROTECTED */}
+      {/* SUPER ADMIN ROUTES - PROTECTED WITH ADMINROUTE */}
       {/* ============================================ */}
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/super-admin/login" replace />} />}>
-        <Route path="/super-admin" element={<SuperAdminLayout />}>
-          <Route index element={<Navigate to="/super-admin/dashboard" replace />} />
-          <Route path="dashboard" element={<SuperAdminDashboard />} />
-          <Route path="vendors" element={<SuperAdminVendors />} />
-          <Route path="orders" element={<SuperAdminOrders />} />
-          <Route path="customers" element={<SuperAdminCustomers />} />
-          <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
-          <Route path="analytics" element={<SuperAdminAnalytics />} />
-          <Route path="notifications" element={<SuperAdminNotifications />} />
-        </Route>
+      <Route 
+        path="/super-admin" 
+        element={
+          <AdminRoute>
+            <SuperAdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<Navigate to="/super-admin/dashboard" replace />} />
+        <Route path="dashboard" element={<SuperAdminDashboard />} />
+        <Route path="vendors" element={<SuperAdminVendors />} />
+        <Route path="orders" element={<SuperAdminOrders />} />
+        <Route path="customers" element={<SuperAdminCustomers />} />
+        <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+        <Route path="analytics" element={<SuperAdminAnalytics />} />
+        <Route path="notifications" element={<SuperAdminNotifications />} />
       </Route>
 
       {/* ============================================ */}
-      {/* ADMIN ROUTES - PROTECTED (Alternative) */}
+      {/* ADMIN ROUTES - ALTERNATIVE PATH */}
       {/* ============================================ */}
-      <Route element={<AdminRoute unauthenticatedElement={<Navigate to="/super-admin/login" replace />} />}>
-        <Route path="/admin" element={<SuperAdminLayout />}>
-          <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard" element={<SuperAdminDashboard />} />
-          <Route path="vendors" element={<SuperAdminVendors />} />
-          <Route path="orders" element={<SuperAdminOrders />} />
-          <Route path="customers" element={<SuperAdminCustomers />} />
-          <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
-          <Route path="analytics" element={<SuperAdminAnalytics />} />
-          <Route path="notifications" element={<SuperAdminNotifications />} />
-        </Route>
+      <Route 
+        path="/admin" 
+        element={
+          <AdminRoute>
+            <SuperAdminLayout />
+          </AdminRoute>
+        }
+      >
+        <Route index element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="dashboard" element={<SuperAdminDashboard />} />
+        <Route path="vendors" element={<SuperAdminVendors />} />
+        <Route path="orders" element={<SuperAdminOrders />} />
+        <Route path="customers" element={<SuperAdminCustomers />} />
+        <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+        <Route path="analytics" element={<SuperAdminAnalytics />} />
+        <Route path="notifications" element={<SuperAdminNotifications />} />
       </Route>
 
       {/* ============================================ */}
-      {/* VENDOR ROUTES - PROTECTED */}
+      {/* VENDOR ROUTES - PROTECTED WITH PROTECTEDROUTE */}
       {/* ============================================ */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
         <Route path="/vendor/admin" element={<VendorAdmin />} />

@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
-import { useAuth } from '@/lib/AuthContext';
-import UserNotRegisteredError from '@/components/UserNotRegisteredError';
+// src/components/ProtectedRoute.jsx
+import { useEffect, useState } from 'react';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import { supabase } from '@/api/supabase';
 
 const DefaultFallback = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -10,29 +10,42 @@ const DefaultFallback = () => (
 );
 
 export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthenticatedElement }) {
-  const { user, isLoadingAuth, authChecked, authError } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const location = useLocation();
 
-  // ✅ Only check if user is null and auth is not loading
   useEffect(() => {
-    // If auth is already checked and no user, we can redirect
-    // Don't call checkUserAuth() here - it causes delays
+    const checkAuth = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          console.error('Auth error:', error);
+          setUser(null);
+        } else {
+          setUser(user);
+        }
+      } catch (err) {
+        console.error('Auth check error:', err);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  // ✅ Show loading only briefly
-  if (isLoadingAuth) {
+  // ✅ If still loading, show spinner
+  if (loading) {
     return fallback;
   }
 
-  // ✅ If auth is checked and no user, redirect
-  if (authChecked && !user) {
-    return unauthenticatedElement;
+  // ✅ If no user, redirect to login
+  if (!user) {
+    return unauthenticatedElement || <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  // ✅ If user exists, render children
-  if (user) {
-    return <Outlet />;
-  }
-
-  // ✅ Fallback loading state
-  return fallback;
+  // ✅ User exists - render children
+  return <Outlet />;
 }
