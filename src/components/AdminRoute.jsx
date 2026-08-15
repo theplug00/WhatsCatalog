@@ -1,44 +1,53 @@
 // src/components/AdminRoute.jsx
 import React, { useEffect, useState } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { supabase } from "@/api/supabase";
 
 export default function AdminRoute({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (!user) {
-          localStorage.removeItem('admin_session');
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          console.log('No user found');
           setIsAdmin(false);
           setLoading(false);
           return;
         }
 
-        const { data: adminData, error } = await supabase
+        // ✅ Check if user is admin
+        const { data: adminData, error: adminError } = await supabase
           .from('admins')
-          .select('id, is_active, role')
+          .select('*')
           .eq('id', user.id)
           .single();
 
-        const isAllowedAdmin = !error && adminData && adminData.is_active && ['super_admin', 'admin'].includes(adminData.role);
-
-        if (isAllowedAdmin) {
-          localStorage.setItem('admin_session', 'true');
-          setIsAdmin(true);
-        } else {
-          localStorage.removeItem('admin_session');
+        if (adminError || !adminData) {
+          console.log('Not an admin user');
           setIsAdmin(false);
+          setLoading(false);
+          return;
         }
+
+        if (!adminData.is_active) {
+          console.log('Admin account inactive');
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+
+        // ✅ User is admin
+        console.log('Admin user confirmed:', adminData.email);
+        setIsAdmin(true);
+        setLoading(false);
       } catch (error) {
         console.error('Admin check error:', error);
-        localStorage.removeItem('admin_session');
         setIsAdmin(false);
-      } finally {
         setLoading(false);
       }
     };
@@ -46,6 +55,7 @@ export default function AdminRoute({ children }) {
     checkAdmin();
   }, []);
 
+  // ✅ If still loading, show spinner
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -54,5 +64,11 @@ export default function AdminRoute({ children }) {
     );
   }
 
-  return isAdmin ? (children ?? <Outlet />) : <Navigate to="/super-admin/login" replace />;
+  // ✅ If not admin, redirect to login (but preserve the intended URL)
+  if (!isAdmin) {
+    return <Navigate to="/super-admin/login" state={{ from: location }} replace />;
+  }
+
+  // ✅ Admin user - render children
+  return children;
 }
