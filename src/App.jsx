@@ -71,6 +71,7 @@ const AuthenticatedApp = () => {
       <Route path="/vendor" element={<VendorLanding />} />
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorRegister />} />
+  
       
       {/* ✅ Store routes */}
       <Route path="/store/:slug" element={<VendorStore />} />

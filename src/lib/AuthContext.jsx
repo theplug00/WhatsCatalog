@@ -13,7 +13,6 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
 
-  // ✅ Check user auth function
   const checkUserAuth = async () => {
     try {
       const { data: { user }, error } = await supabase.auth.getUser();
@@ -42,7 +41,6 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // ✅ Get initial session
   useEffect(() => {
     const getSession = async () => {
       setIsLoadingAuth(true);
@@ -59,8 +57,8 @@ export function AuthProvider({ children }) {
           setSession(session);
           setUser(session.user);
           setIsAuthenticated(true);
+          setAuthChecked(true);
         } else {
-          // Check for existing session
           await checkUserAuth();
         }
       } catch (err) {
@@ -74,7 +72,6 @@ export function AuthProvider({ children }) {
 
     getSession();
 
-    // ✅ Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (event === 'SIGNED_IN') {
@@ -99,7 +96,8 @@ export function AuthProvider({ children }) {
   }, []);
 
   const navigateToLogin = () => {
-    window.location.href = '/login';
+    // ✅ Redirect to vendor login instead of general login
+    window.location.href = '/vendor/login';
   };
 
   const value = {
@@ -110,7 +108,7 @@ export function AuthProvider({ children }) {
     authError,
     authChecked,
     isAuthenticated,
-    checkUserAuth,  // ✅ Make sure this is exported
+    checkUserAuth,
     navigateToLogin,
   };
 
