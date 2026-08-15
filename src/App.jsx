@@ -7,7 +7,8 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import Home from '@/pages/Home';
-import Login from '@/pages/Login';
+// ❌ Remove this import
+// import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
@@ -60,7 +61,10 @@ const AuthenticatedApp = () => {
       {/* PUBLIC ROUTES */}
       {/* ============================================ */}
       <Route path="/" element={<Home />} />
-      <Route path="/login" element={<Login />} />
+      
+      {/* ✅ Redirect /login to vendor login */}
+      <Route path="/login" element={<Navigate to="/vendor/login" replace />} />
+      
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
@@ -76,7 +80,7 @@ const AuthenticatedApp = () => {
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
 
       {/* ============================================ */}
-      {/* SUPER ADMIN ROUTES - PROTECTED WITH ADMINROUTE */}
+      {/* SUPER ADMIN ROUTES - SINGLE ENTRY POINT */}
       {/* ============================================ */}
       <Route 
         path="/super-admin" 
@@ -97,7 +101,7 @@ const AuthenticatedApp = () => {
       </Route>
 
       {/* ============================================ */}
-      {/* VENDOR ROUTES - PROTECTED WITH PROTECTEDROUTE */}
+      {/* VENDOR ROUTES - PROTECTED */}
       {/* ============================================ */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
         <Route path="/vendor/admin" element={<VendorAdmin />} />
@@ -115,9 +119,6 @@ const AuthenticatedApp = () => {
   );
 };
 
-// ============================================
-// MAIN APP COMPONENT
-// ============================================
 function App() {
   return (
     <AuthProvider>
