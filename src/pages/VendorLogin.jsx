@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "@/api/supabase"; // ✅ Changed from @/lib/supabase to @/api/supabase
+import { supabase } from "@/api/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn, Mail, Lock, Loader2, Store, ArrowRight, Eye, EyeOff } from "lucide-react";
-import VendorAuthLayout from "@/components/landing/VendorAuthLayout";
+import { Store, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
+import SplitAuthLayout from "@/components/SplitAuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
+
+const VENDOR_IMAGE =
+  "https://media.base44.com/images/public/6a383a8b348b95defff04d98/295601b35_generated_image.png";
 
 export default function VendorLogin() {
   const [email, setEmail] = useState("");
@@ -14,54 +17,86 @@ export default function VendorLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const navigate = useNavigate();
+
+  // ✅ Check if already logged in
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: vendorData } = await supabase
+            .from('vendors')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (vendorData) {
+            window.location.href = '/vendor/admin';
+          }
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+    };
+    checkAuth();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
-    
+
     try {
-      // 1. Sign in with Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      // ✅ Sign in with Supabase
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-      if (authError) throw authError;
+      if (error) throw error;
 
-      // 2. Check if user is a vendor
+      // ✅ Check if user is a vendor
       const { data: vendorData, error: vendorError } = await supabase
         .from('vendors')
         .select('*')
-        .eq('id', authData.user.id)
+        .eq('id', data.user.id)
         .single();
 
-      if (vendorError) {
-        // User is not registered as vendor
+      if (vendorError || !vendorData) {
         await supabase.auth.signOut();
-        throw new Error('Account not found as vendor. Please register first.');
+        setError("Vendor account not found. Please register first.");
+        setLoading(false);
+        return;
       }
 
-      // 3. Check vendor status
+      // ✅ Check vendor status
       if (vendorData.status === 'pending') {
         await supabase.auth.signOut();
-        throw new Error('Your vendor account is pending approval. Please wait for admin confirmation.');
+        setError('Your vendor account is pending approval. Please wait for admin confirmation.');
+        setLoading(false);
+        return;
       }
 
       if (vendorData.status === 'suspended') {
         await supabase.auth.signOut();
-        throw new Error('Your vendor account has been suspended. Please contact support.');
+        setError('Your vendor account has been suspended. Please contact support.');
+        setLoading(false);
+        return;
       }
 
       if (vendorData.status === 'rejected') {
         await supabase.auth.signOut();
-        throw new Error('Your vendor application was rejected. Please contact support for more information.');
+        setError('Your vendor application was rejected. Please contact support.');
+        setLoading(false);
+        return;
       }
 
-      // 4. Successful login - redirect to vendor dashboard
-      navigate("/vendor/admin");
-      
+      // ✅ Success - redirect to vendor dashboard
+      setRedirecting(true);
+      window.location.href = '/vendor/admin';
+
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -83,8 +118,33 @@ export default function VendorLogin() {
     }
   };
 
+  // ✅ Show loading while redirecting
+  if (redirecting) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#F0F4F4]">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
+          <p className="mt-4 text-[#0B2E2A]/60">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <VendorAuthLayout side="login">
+    <SplitAuthLayout
+      image={VENDOR_IMAGE}
+      badge="Vendor Portal"
+      headline="Grow your business through conversations."
+      subtitle="Join thousands of vendors selling directly to customers via WhatsApp. Manage your catalog, orders, and customers — all in one place."
+      footerLink={
+        <>
+          New vendor?{" "}
+          <Link to="/vendor/register" className="text-primary font-semibold hover:underline">
+            Apply to sell
+          </Link>
+        </>
+      }
+    >
       {/* Header */}
       <div className="mb-8">
         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
@@ -101,7 +161,7 @@ export default function VendorLogin() {
       {/* Google */}
       <Button
         variant="outline"
-        className="w-full h-12 text-sm font-medium mb-5 glass border-white/30 text-[#0B2E2A] hover:bg-white/40"
+        className="w-full h-12 text-sm font-medium mb-5 rounded-xl border-[#0B2E2A]/15 hover:bg-[#0B2E2A]/5"
         onClick={handleGoogle}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />
@@ -114,7 +174,7 @@ export default function VendorLogin() {
           <div className="w-full border-t border-[#0B2E2A]/10" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white/40 px-3 text-[#0B2E2A]/40 backdrop-blur-sm">
+          <span className="bg-[#F0F4F4] px-3 text-[#0B2E2A]/40">
             or sign in with email
           </span>
         </div>
@@ -122,7 +182,7 @@ export default function VendorLogin() {
 
       {/* Error */}
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-destructive/10 text-destructive text-sm">
+        <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
           {error}
         </div>
       )}
@@ -143,7 +203,7 @@ export default function VendorLogin() {
               placeholder="vendor@business.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12 bg-white/50 border-[#0B2E2A]/10 focus:bg-white/70"
+              className="pl-10 h-12 bg-white/60 border-[#0B2E2A]/10 focus:bg-white rounded-xl"
               required
             />
           </div>
@@ -170,7 +230,7 @@ export default function VendorLogin() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 pr-10 h-12 bg-white/50 border-[#0B2E2A]/10 focus:bg-white/70"
+              className="pl-10 pr-10 h-12 bg-white/60 border-[#0B2E2A]/10 focus:bg-white rounded-xl"
               required
             />
             <button
@@ -185,7 +245,7 @@ export default function VendorLogin() {
 
         <Button
           type="submit"
-          className="w-full h-12 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl glow-pulse"
+          className="w-full h-12 font-semibold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-primary/20 transition-all"
           disabled={loading}
         >
           {loading ? (
@@ -201,6 +261,6 @@ export default function VendorLogin() {
           )}
         </Button>
       </form>
-    </VendorAuthLayout>
+    </SplitAuthLayout>
   );
 }

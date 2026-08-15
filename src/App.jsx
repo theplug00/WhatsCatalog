@@ -7,8 +7,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import Home from '@/pages/Home';
-// ❌ Remove this import
-// import Login from '@/pages/Login';
+import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
@@ -22,6 +21,7 @@ import VendorProfilePage from '@/pages/VendorProfilePage';
 import VendorSubscription from '@/pages/VendorSubscription';
 import VendorStore from '@/pages/VendorStore';
 import TrackOrder from '@/pages/TrackOrder';
+import StorePage from '@/pages/StorePage';
 import SuperAdminLayout from '@/components/superadmin/SuperAdminLayout';
 import SuperAdminDashboard from '@/pages/superadmin/SuperAdminDashboard';
 import SuperAdminVendors from '@/pages/superadmin/SuperAdminVendors';
@@ -38,6 +38,7 @@ import { Navigate } from 'react-router-dom';
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
+  // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
@@ -46,10 +47,12 @@ const AuthenticatedApp = () => {
     );
   }
 
+  // Handle authentication errors
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
+      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
@@ -61,16 +64,15 @@ const AuthenticatedApp = () => {
       {/* PUBLIC ROUTES */}
       {/* ============================================ */}
       <Route path="/" element={<Home />} />
-      
-      {/* ✅ Redirect /login to vendor login */}
-      <Route path="/login" element={<Navigate to="/vendor/login" replace />} />
-      
+      <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/vendor" element={<VendorLanding />} />
       <Route path="/vendor/login" element={<VendorLogin />} />
       <Route path="/vendor/register" element={<VendorRegister />} />
+      
+      {/* ✅ Store routes */}
       <Route path="/store/:slug" element={<VendorStore />} />
       <Route path="/track-order/:orderId" element={<TrackOrder />} />
 
@@ -80,16 +82,16 @@ const AuthenticatedApp = () => {
       <Route path="/super-admin/login" element={<SuperAdminLogin />} />
 
       {/* ============================================ */}
-      {/* SUPER ADMIN ROUTES - SINGLE ENTRY POINT */}
+      {/* SUPER ADMIN ROUTES - PROTECTED WITH ADMINROUTE */}
       {/* ============================================ */}
       <Route 
-  path="/super-admin" 
-  element={
-    <AdminRoute>
-      <SuperAdminLayout />
-    </AdminRoute>
-  }
->
+        path="/super-admin" 
+        element={
+          <AdminRoute>
+            <SuperAdminLayout />
+          </AdminRoute>
+        }
+      >
         <Route index element={<Navigate to="/super-admin/dashboard" replace />} />
         <Route path="dashboard" element={<SuperAdminDashboard />} />
         <Route path="vendors" element={<SuperAdminVendors />} />
@@ -101,7 +103,7 @@ const AuthenticatedApp = () => {
       </Route>
 
       {/* ============================================ */}
-      {/* VENDOR ROUTES - PROTECTED */}
+      {/* VENDOR ROUTES - PROTECTED WITH PROTECTEDROUTE */}
       {/* ============================================ */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
         <Route path="/vendor/admin" element={<VendorAdmin />} />

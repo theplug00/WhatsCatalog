@@ -1,22 +1,22 @@
-// src/pages/superadmin/SuperAdminLogin.jsx
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { 
-  Mail, Lock, Loader2, Shield, ArrowRight, 
-  Eye, EyeOff, AlertCircle, Users, ShoppingBag, BarChart3
-} from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Shield, Mail, Lock, Loader2, ArrowRight, Eye, EyeOff } from "lucide-react";
+import SplitAuthLayout from "@/components/SplitAuthLayout";
+import GoogleIcon from "@/components/GoogleIcon";
+
+const ADMIN_IMAGE =
+  "https://media.base44.com/images/public/6a383a8b348b95defff04d98/13f7919eb_generated_image.png";
 
 export default function SuperAdminLogin() {
-  const [email, setEmail] = useState("admin@business.com");
-  const [password, setPassword] = useState("Admin@123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const navigate = useNavigate();
 
@@ -33,7 +33,6 @@ export default function SuperAdminLogin() {
             .single();
           
           if (adminData && adminData.is_active) {
-            // ✅ Already logged in - redirect to dashboard
             window.location.href = '/super-admin/dashboard';
           }
         }
@@ -50,7 +49,7 @@ export default function SuperAdminLogin() {
     setLoading(true);
 
     try {
-      // 1. Sign in
+      // ✅ Sign in with Supabase
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -58,7 +57,7 @@ export default function SuperAdminLogin() {
 
       if (error) throw error;
 
-      // 2. Check if user is admin
+      // ✅ Check if user is an admin
       const { data: adminData, error: adminError } = await supabase
         .from('admins')
         .select('*')
@@ -74,22 +73,37 @@ export default function SuperAdminLogin() {
 
       if (!adminData.is_active) {
         await supabase.auth.signOut();
-        setError("Admin account is deactivated.");
+        setError("Admin account is deactivated. Please contact support.");
         setLoading(false);
         return;
       }
 
-      // ✅ Success - redirect to dashboard
+      // ✅ Success - redirect to admin dashboard
       setRedirecting(true);
       window.location.href = '/super-admin/dashboard';
 
     } catch (err) {
       setError(err.message || "Invalid email or password");
+    } finally {
       setLoading(false);
     }
   };
 
-  // If redirecting, show loading
+  const handleGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/super-admin/dashboard`
+        }
+      });
+      if (error) throw error;
+    } catch (err) {
+      setError(err.message || "Google sign-in failed");
+    }
+  };
+
+  // ✅ Show loading while redirecting
   if (redirecting) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#F0F4F4]">
@@ -102,185 +116,136 @@ export default function SuperAdminLogin() {
   }
 
   return (
-    <div className="min-h-screen flex bg-[#F0F4F4] overflow-hidden">
-      {/* Left - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-12 z-10">
-        <motion.div 
-          initial={{ opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="w-full max-w-md"
-        >
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-extrabold font-heading text-[#0B2E2A]">
-                Admin<span className="text-primary">Panel</span>
-              </h1>
-              <p className="text-sm text-[#0B2E2A]/50">Secure Access Only</p>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <h2 className="text-3xl font-extrabold font-heading text-[#0B2E2A] tracking-tight">
-              Welcome Back
-            </h2>
-            <p className="text-[#0B2E2A]/50 mt-1">Sign in to manage your platform</p>
-          </div>
-
-          {error && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm flex items-center gap-2"
-            >
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              {error}
-            </motion.div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <Label htmlFor="email" className="text-sm font-semibold text-[#0B2E2A]">
-                Email Address
-              </Label>
-              <div className="relative mt-1.5">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-11 h-12 bg-white/60 border-[#0B2E2A]/10 focus:bg-white focus:border-primary/50 rounded-xl transition-all"
-                  placeholder="admin@business.com"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-sm font-semibold text-[#0B2E2A]">
-                  Password
-                </Label>
-              </div>
-              <div className="relative mt-1.5">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="pl-11 pr-11 h-12 bg-white/60 border-[#0B2E2A]/10 focus:bg-white focus:border-primary/50 rounded-xl transition-all"
-                  placeholder="••••••••"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#0B2E2A]/40 hover:text-[#0B2E2A] transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full h-12 font-semibold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-primary/20 transition-all"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                <>
-                  Sign In
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </>
-              )}
-            </Button>
-          </form>
-
-          <p className="text-center text-xs text-[#0B2E2A]/40 mt-6">
-            Default: admin@business.com / Admin@123
-          </p>
-        </motion.div>
+    <SplitAuthLayout
+      image={ADMIN_IMAGE}
+      badge="Admin Portal"
+      headline="Manage your platform."
+      subtitle="Oversee vendors, orders, and subscriptions — all from one unified dashboard."
+      footerLink={
+        <>
+          Not an admin?{" "}
+          <Link to="/vendor/login" className="text-primary font-semibold hover:underline">
+            Vendor login
+          </Link>
+        </>
+      }
+    >
+      {/* Header */}
+      <div className="mb-8">
+        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+          <Shield className="w-6 h-6 text-primary" />
+        </div>
+        <h2 className="text-2xl md:text-3xl font-extrabold font-heading text-[#0B2E2A] tracking-tight">
+          Admin Sign In
+        </h2>
+        <p className="text-[#0B2E2A]/50 mt-2">
+          Access the super-admin dashboard
+        </p>
       </div>
 
-      {/* Right - Admin Image Panel */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#0B2E2A] overflow-hidden">
-        <div className="absolute inset-0">
-          <div className="absolute inset-0 bg-linear-to-br from-primary/20 to-[#0B2E2A]" />
-          <div className="absolute top-[-20%] right-[-10%] w-125 h-125 rounded-full bg-primary/10 blur-[100px]" />
-          <div className="absolute bottom-[-20%] left-[-10%] w-100 h-100 rounded-full bg-primary/5 blur-[80px]" />
+      {/* Google */}
+      <Button
+        variant="outline"
+        className="w-full h-12 text-sm font-medium mb-5 rounded-xl border-[#0B2E2A]/15 hover:bg-[#0B2E2A]/5"
+        onClick={handleGoogle}
+      >
+        <GoogleIcon className="w-5 h-5 mr-2" />
+        Continue with Google
+      </Button>
+
+      {/* Divider */}
+      <div className="relative mb-5">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-[#0B2E2A]/10" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-[#F0F4F4] px-3 text-[#0B2E2A]/40">
+            or sign in with email
+          </span>
+        </div>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-4 p-3 rounded-xl bg-red-50 text-red-600 text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email" className="text-[#0B2E2A] font-medium">
+            Admin Email
+          </Label>
+          <div className="relative">
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" aria-hidden="true" />
+            <Input
+              id="email"
+              type="email"
+              autoComplete="email"
+              autoFocus
+              placeholder="admin@whatscatalog.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10 h-12 bg-white/60 border-[#0B2E2A]/10 focus:bg-white rounded-xl"
+              required
+            />
+          </div>
         </div>
 
-        <motion.div 
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="relative z-10 flex flex-col items-center justify-center w-full h-full p-12 text-center"
-        >
-          <div className="relative">
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-[80px] scale-75" />
-            <div className="relative w-40 h-40 mx-auto mb-8">
-              <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl" />
-              <div className="relative w-full h-full rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center">
-                <Shield className="w-20 h-20 text-primary" />
-              </div>
-              <div className="absolute -inset-4 rounded-full border border-white/5 animate-pulse" />
-              <div className="absolute -inset-8 rounded-full border border-white/5 animate-pulse delay-300" />
-            </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-[#0B2E2A] font-medium">
+              Password
+            </Label>
+            <Link
+              to="/forgot-password"
+              className="text-xs text-primary hover:underline font-medium"
+            >
+              Forgot password?
+            </Link>
           </div>
+          <div className="relative">
+            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#0B2E2A]/40" aria-hidden="true" />
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-10 pr-10 h-12 bg-white/60 border-[#0B2E2A]/10 focus:bg-white rounded-xl"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#0B2E2A]/40 hover:text-[#0B2E2A]/70"
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <h2 className="text-3xl font-extrabold text-white font-heading">
-              Admin Dashboard
-            </h2>
-            <p className="text-white/50 mt-2 max-w-sm">
-              Manage vendors, orders, and platform settings from one place
-            </p>
-          </motion.div>
-
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-            className="mt-8 grid grid-cols-2 gap-3 w-full max-w-sm"
-          >
-            {[
-              { icon: Shield, label: "Secure Access" },
-              { icon: Users, label: "Vendor Management" },
-              { icon: ShoppingBag, label: "Order Tracking" },
-              { icon: BarChart3, label: "Analytics" },
-            ].map((feature, i) => (
-              <div key={i} className="bg-white/5 backdrop-blur-sm rounded-xl p-3 border border-white/5">
-                <feature.icon className="w-5 h-5 text-primary mx-auto mb-1" />
-                <p className="text-xs text-white/60">{feature.label}</p>
-              </div>
-            ))}
-          </motion.div>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="absolute bottom-8 text-xs text-white/20"
-          >
-            Secured with Supabase Auth
-          </motion.p>
-        </motion.div>
-      </div>
-    </div>
+        <Button
+          type="submit"
+          className="w-full h-12 font-semibold bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-primary/20 transition-all"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            <>
+              Sign in to Dashboard
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </>
+          )}
+        </Button>
+      </form>
+    </SplitAuthLayout>
   );
 }
