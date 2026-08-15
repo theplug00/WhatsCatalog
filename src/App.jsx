@@ -97,27 +97,6 @@ const AuthenticatedApp = () => {
       </Route>
 
       {/* ============================================ */}
-      {/* ADMIN ROUTES - ALTERNATIVE PATH */}
-      {/* ============================================ */}
-      <Route 
-        path="/admin" 
-        element={
-          <AdminRoute>
-            <SuperAdminLayout />
-          </AdminRoute>
-        }
-      >
-        <Route index element={<Navigate to="/admin/dashboard" replace />} />
-        <Route path="dashboard" element={<SuperAdminDashboard />} />
-        <Route path="vendors" element={<SuperAdminVendors />} />
-        <Route path="orders" element={<SuperAdminOrders />} />
-        <Route path="customers" element={<SuperAdminCustomers />} />
-        <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
-        <Route path="analytics" element={<SuperAdminAnalytics />} />
-        <Route path="notifications" element={<SuperAdminNotifications />} />
-      </Route>
-
-      {/* ============================================ */}
       {/* VENDOR ROUTES - PROTECTED WITH PROTECTEDROUTE */}
       {/* ============================================ */}
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/vendor/login" replace />} />}>
